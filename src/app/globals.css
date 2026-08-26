@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+/*
+  Paleta em duas camadas.
+
+  1. Identidade — verde e amarelo do Governo do Acre, com um acento lilás que é a
+     cor associada ao enfrentamento à violência de gênero no estado (Prêmio Laço
+     Lilás, Decreto nº 11.603/2024). Manda no cabeçalho, botões e destaques.
+
+  2. Séries de gráfico — paleta categórica validada (separação para daltonismo,
+     faixa de luminosidade e piso de croma conferidos com o validador). Não usa o
+     verde institucional de propósito: cor de marca e cor de dado não podem se
+     confundir. No modo claro três das seis séries ficam abaixo de 3:1 contra a
+     superfície, então todo gráfico traz rótulo visível e existe a tabela
+     detalhada como leitura alternativa.
+*/
+:root {
+  color-scheme: light;
+
+  --fundo: #f5f6f3;
+  --superficie: #fcfcfb;
+  --superficie-2: #eef0ea;
+  --borda: #e0e3db;
+  --borda-forte: #c9cec3;
+
+  --texto: #14171a;
+  --texto-2: #4f545b;
+  --texto-3: #767c85;
+  --texto-inverso: #ffffff;
+
+  --verde: #00743a;
+  --verde-claro: #00964b;
+  --verde-escuro: #123f30;
+  --amarelo: #ffc400;
+  --lilas: #6d3fb5;
+  --lilas-claro: #f0e9fb;
+
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --serie-4: #eda100;
+  --serie-5: #e87ba4;
+  --serie-6: #008300;
+
+  /* Categorias 1-2-3 são ordenadas, não nominais: rampa de um hue só. */
+  --cat-1: #86b6ef;
+  --cat-2: #2a78d6;
+  --cat-3: #104281;
+
+  --grade: #e6e8e2;
+  --eixo: #b9bfb3;
+
+  --bom: #0ca30c;
+  --alerta: #fab219;
+  --critico: #d03b3b;
+
+  --raio: 0.75rem;
+  --sombra: 0 1px 2px rgb(20 23 26 / 0.05), 0 1px 3px rgb(20 23 26 / 0.06);
+  --sombra-alta: 0 2px 6px rgb(20 23 26 / 0.07), 0 8px 24px rgb(20 23 26 / 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --fundo: #111211;
+    --superficie: #1a1a19;
+    --superficie-2: #232422;
+    --borda: #32332f;
+    --borda-forte: #4a4c46;
+
+    --texto: #f4f4f1;
+    --texto-2: #c3c2b7;
+    --texto-3: #94958c;
+    --texto-inverso: #111211;
+
+    --verde: #29a35f;
+    --verde-claro: #3fbf75;
+    --verde-escuro: #0d2b21;
+    --amarelo: #ffc400;
+    --lilas: #b193e8;
+    --lilas-claro: #2a2140;
+
+    --serie-1: #3987e5;
+    --serie-2: #d95926;
+    --serie-3: #199e70;
+    --serie-4: #c98500;
+    --serie-5: #d55181;
+    --serie-6: #008300;
+
+    --cat-1: #b7d3f6;
+    --cat-2: #5598e7;
+    --cat-3: #1c5cab;
+
+    --grade: #2b2c29;
+    --eixo: #4d4f49;
+
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.4);
+    --sombra-alta: 0 2px 6px rgb(0 0 0 / 0.45), 0 8px 24px rgb(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --fundo: #111211;
+  --superficie: #1a1a19;
+  --superficie-2: #232422;
+  --borda: #32332f;
+  --borda-forte: #4a4c46;
+
+  --texto: #f4f4f1;
+  --texto-2: #c3c2b7;
+  --texto-3: #94958c;
+  --texto-inverso: #111211;
+
+  --verde: #29a35f;
+  --verde-claro: #3fbf75;
+  --verde-escuro: #0d2b21;
+  --amarelo: #ffc400;
+  --lilas: #b193e8;
+  --lilas-claro: #2a2140;
+
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --serie-4: #c98500;
+  --serie-5: #d55181;
+  --serie-6: #008300;
+
+  --cat-1: #b7d3f6;
+  --cat-2: #5598e7;
+  --cat-3: #1c5cab;
+
+  --grade: #2b2c29;
+  --eixo: #4d4f49;
+
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4);
+  --sombra-alta: 0 2px 6px rgb(0 0 0 / 0.45), 0 8px 24px rgb(0 0 0 / 0.5);
+}
+
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-borda: var(--borda);
+  --color-borda-forte: var(--borda-forte);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+  --color-texto-inverso: var(--texto-inverso);
+  --color-verde: var(--verde);
+  --color-verde-claro: var(--verde-claro);
+  --color-verde-escuro: var(--verde-escuro);
+  --color-amarelo: var(--amarelo);
+  --color-lilas: var(--lilas);
+  --color-lilas-claro: var(--lilas-claro);
+  --color-serie-1: var(--serie-1);
+  --color-serie-2: var(--serie-2);
+  --color-serie-3: var(--serie-3);
+  --color-serie-4: var(--serie-4);
+  --color-serie-5: var(--serie-5);
+  --color-serie-6: var(--serie-6);
+  --color-cat-1: var(--cat-1);
+  --color-cat-2: var(--cat-2);
+  --color-cat-3: var(--cat-3);
+  --color-grade: var(--grade);
+  --color-bom: var(--bom);
+  --color-alerta: var(--alerta);
+  --color-critico: var(--critico);
+  --radius-card: var(--raio);
+  --shadow-card: var(--sombra);
+  --shadow-card-alta: var(--sombra-alta);
+}
+
+* {
+  border-color: var(--borda);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--lilas);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lilas);
+  outline-offset: 2px;
+}
+
+/* Numerais tabulares onde valores são comparados coluna a coluna. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Recharts: a grade e os eixos precisam ficar recessivos. */
+.recharts-cartesian-grid line {
+  stroke: var(--grade);
+}
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+  stroke: var(--eixo);
+}
+.recharts-text {
+  fill: var(--texto-3);
+}
+.recharts-surface:focus {
+  outline: none;
+}
+
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.surgir {
+  animation: surgir 0.35s ease-out both;
+}

@@ -1,0 +1,17 @@
+/node_modules
+/.next
+/out
+/build
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# planilhas de origem (a verdade dos dados mora no Neon)
+/_fontes
+/*.xlsx
+/*.xls
+~$*
