@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
@@ -33,6 +34,15 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           {children}
