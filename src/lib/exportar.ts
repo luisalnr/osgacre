@@ -1,4 +1,8 @@
-import { agruparEmDotacoes, pesoNaDotacao } from "./agregacoes";
+import {
+  agruparEmDotacoes,
+  pesoNaDotacao,
+  type IndiceQdd,
+} from "./agregacoes";
 import { moeda, percentual } from "./formato";
 import { nomeEixo, nomeFuncao, nomePrograma } from "./referencias";
 import type { Filtros, Registro, Totais } from "./types";
@@ -58,7 +62,8 @@ function descreverFiltros(f: Filtros, opcoesEixos: Map<string, string>): string[
 export async function exportarXlsx(
   registros: Registro[],
   filtros: Filtros,
-  totais: Totais
+  totais: Totais,
+  qdd: IndiceQdd | null
 ) {
   const ExcelJS = (await import("exceljs")).default;
   const wb = new ExcelJS.Workbook();
@@ -82,10 +87,16 @@ export async function exportarXlsx(
     { header: "Liquidado OSG", key: "liq", width: 18, style: { numFmt: MOEDA_XLSX } },
     { header: "Execução (%)", key: "execucao", width: 14, style: { numFmt: "0.0%" } },
     { header: "Participação do OSG na dotação (%)", key: "peso", width: 30, style: { numFmt: "0.0%" } },
+    { header: "Base do percentual", key: "baseRotulo", width: 22 },
+    { header: "Dotação inicial", key: "dotInicial", width: 18, style: { numFmt: MOEDA_XLSX } },
+    { header: "Dotação atualizada", key: "dotAtualizada", width: 20, style: { numFmt: MOEDA_XLSX } },
+    { header: "Liquidado da dotação", key: "dotLiquidado", width: 20, style: { numFmt: MOEDA_XLSX } },
+    { header: "Fonte da dotação", key: "dotFonte", width: 18 },
   ];
 
   for (const d of dotacoes) {
-    const peso = pesoNaDotacao(d);
+    const peso = pesoNaDotacao(d, qdd);
+    const { base } = peso;
     abaDotacoes.addRow({
       ano: d.ano,
       orgao: d.orgaoSigla,
@@ -99,7 +110,23 @@ export async function exportarXlsx(
       aprop: d.apropOsg,
       liq: d.liqOsg,
       execucao: d.apropOsg ? d.liqOsg / d.apropOsg : null,
-      peso: peso === null ? null : peso / 100,
+      peso: peso.percentual === null ? null : peso.percentual / 100,
+      baseRotulo: peso.aConferir
+        ? "a conferir"
+        : peso.percentual === null
+          ? "não informada"
+          : base.usouAtualizada
+            ? "dotação atualizada"
+            : "dotação inicial",
+      dotInicial: base.inicial,
+      dotAtualizada: base.atualizada,
+      dotLiquidado: base.liquidadoProjeto,
+      dotFonte:
+        base.origem === "qdd-orgao" || base.origem === "qdd-projeto"
+          ? "QDD"
+          : base.origem === "planilha"
+            ? "planilha do OSG"
+            : "",
     });
   }
 
@@ -201,6 +228,8 @@ export async function exportarPdf(
     y += 12;
   }
 
+  // O PDF fica só com as duas colunas do OSG e a execução. Os valores da
+  // dotação vinda do QDD entram no XLSX, onde há espaço para eles.
   const dotacoes = agruparEmDotacoes(registros);
   autoTable(doc, {
     startY: y + 8,

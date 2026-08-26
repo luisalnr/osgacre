@@ -36,6 +36,7 @@ export type Registro = {
 export type Dotacao = {
   chave: string;
   ano: number;
+  orgaoCodigo: string;
   orgaoSigla: string;
   orgaoNome: string;
   aplicacaoProgramada: string;
@@ -50,6 +51,30 @@ export type Dotacao = {
   orcAprovadoProjeto: number;
   orcFinalProjeto: number;
   entregas: Registro[];
+};
+
+/**
+ * Uma dotação do QDD, agregada de (exercício, órgão, unidade, projeto/atividade).
+ * `dotacaoAtualizada` é a coluna `Ini+Sup+Cor-Red (B)` — a que reflete
+ * remanejamentos e a única em que as emendas parlamentares aparecem.
+ */
+export type DotacaoQdd = {
+  id: string;
+  ano: number;
+  orgaoCodigo: string;
+  orgaoNome: string;
+  unidadeCodigo: string;
+  unidadeNome: string;
+  projetoAtividade: string;
+  aplicacaoProgramada: string;
+  funcaoProgramatica: string;
+  dotacaoInicial: number;
+  suplementado: number;
+  dotacaoAtualizada: number;
+  empenhado: number;
+  liquidado: number;
+  aLiquidar: number;
+  pago: number;
 };
 
 export type Lei = {

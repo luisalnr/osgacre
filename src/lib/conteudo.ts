@@ -36,7 +36,7 @@ export const SOBRE = {
 };
 
 export const METODOLOGIA_NOTA =
-  "As colunas do orçamento da dotação inteira (aprovado, atualizado e liquidado do projeto/atividade) não são exibidas no painel: o que se acompanha aqui é a parcela apropriada ao OSG. O percentual de participação em cada dotação aparece ao abrir a linha na tabela detalhada.";
+  "As colunas do painel são a parcela apropriada ao OSG, não o orçamento da dotação inteira. Ao abrir a linha na tabela detalhada aparecem a dotação inicial e a atualizada da ação orçamentária, vindas do Quadro de Detalhamento da Despesa (QDD), e quanto delas foi apropriado ao OSG. O percentual usa a dotação inicial quando ela comporta a apropriação e a atualizada quando a dotação foi remanejada ou nasceu zerada, como acontece com as emendas parlamentares.";
 
 export type Relatorio = {
   titulo: string;

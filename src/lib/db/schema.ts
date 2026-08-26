@@ -71,6 +71,48 @@ export const registros = pgTable(
 );
 
 /**
+ * `osg_qdd` — o Quadro de Detalhamento da Despesa do exercício, agregado por
+ * (exercício, órgão, unidade, projeto/atividade).
+ *
+ * Guarda o QDD inteiro, não só as dotações que o OSG referencia: são ~1.350
+ * linhas por exercício e o sistema de Orçamentos Temáticos precisa do conjunto.
+ *
+ * `dotacao_atualizada` é a coluna `Ini+Sup+Cor-Red (B)`. É ela que reflete
+ * remanejamentos feitos durante o exercício e a única em que as emendas
+ * parlamentares aparecem — elas entram na LOA zeradas e só recebem valor depois
+ * da alocação dos planos de trabalho.
+ */
+export const qdd = pgTable(
+  "osg_qdd",
+  {
+    id: text("id").primaryKey(),
+    ano: integer("ano").notNull(),
+    orgaoCodigo: text("orgao_codigo").notNull().default(""),
+    orgaoNome: text("orgao_nome").notNull().default(""),
+    unidadeCodigo: text("unidade_codigo").notNull().default(""),
+    unidadeNome: text("unidade_nome").notNull().default(""),
+    projetoAtividade: text("projeto_atividade").notNull().default(""),
+    aplicacaoProgramada: text("aplicacao_programada").notNull().default(""),
+    funcaoProgramatica: text("funcao_programatica").notNull().default(""),
+
+    dotacaoInicial: numeric("dotacao_inicial", { precision: 16, scale: 2 }).notNull().default("0"),
+    suplementado: numeric("suplementado", { precision: 16, scale: 2 }).notNull().default("0"),
+    dotacaoAtualizada: numeric("dotacao_atualizada", { precision: 16, scale: 2 }).notNull().default("0"),
+    empenhado: numeric("empenhado", { precision: 16, scale: 2 }).notNull().default("0"),
+    liquidado: numeric("liquidado", { precision: 16, scale: 2 }).notNull().default("0"),
+    aLiquidar: numeric("a_liquidar", { precision: 16, scale: 2 }).notNull().default("0"),
+    pago: numeric("pago", { precision: 16, scale: 2 }).notNull().default("0"),
+
+    criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("osg_qdd_ano_idx").on(t.ano),
+    index("osg_qdd_orgao_projeto_idx").on(t.ano, t.orgaoCodigo, t.projetoAtividade),
+    index("osg_qdd_projeto_idx").on(t.ano, t.projetoAtividade),
+  ]
+);
+
+/**
  * `osg_leis` — instrumentos legais que embasam o OSG, vindos das seis abas do
  * "HISTÓRICO DE LEIS ORÇAMENTO SENSÍVEL AO GÊNERO.xlsx". `url` é o link do
  * legis.ac.gov.br embutido na célula da planilha (nem toda linha tem).
@@ -107,6 +149,8 @@ export const usuarios = pgTable("osg_usuarios", {
 
 export type RegistroRow = typeof registros.$inferSelect;
 export type RegistroInsert = typeof registros.$inferInsert;
+export type QddRow = typeof qdd.$inferSelect;
+export type QddInsert = typeof qdd.$inferInsert;
 export type LeiRow = typeof leis.$inferSelect;
 export type LeiInsert = typeof leis.$inferInsert;
 export type UsuarioRow = typeof usuarios.$inferSelect;

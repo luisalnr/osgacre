@@ -1,34 +1,35 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ArrowLeft,
-  Check,
   FileSpreadsheet,
   Gavel,
+  LayoutList,
   LogOut,
-  Upload,
-  X,
+  Table2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { checarContraQdd } from "@/lib/checagens-qdd";
 import { moeda } from "@/lib/formato";
 import { parseHistoricoLeis, ROTULO_TIPO } from "@/lib/parser-leis";
-import { COLUNAS_OSG, parseTabelaOSG, type ResultadoOSG } from "@/lib/parser-osg";
-import type { Lei } from "@/lib/types";
-import { lerAbas } from "@/lib/xlsx-io";
-import { Botao, Card, Etiqueta } from "@/components/ui/primitivos";
-import { cn } from "@/lib/utils";
+import { COLUNAS_OSG, parseTabelaOSG, type Aviso, type ResultadoOSG } from "@/lib/parser-osg";
+import { COLUNAS_QDD, parseQdd, type ResultadoQdd } from "@/lib/parser-qdd";
+import type { DotacaoQdd, Lei } from "@/lib/types";
+import { lerAbas, type Aba } from "@/lib/xlsx-io";
+import { Botao, Etiqueta } from "@/components/ui/primitivos";
+import {
+  BlocoImportacao,
+  Colunas,
+  ListaAvisos,
+  Opcao,
+  Resumo,
+} from "./bloco-importacao";
 
 type Modo = "substituir" | "mesclar";
 
-/**
- * Aba de importação. A planilha é lida no navegador; para o servidor vai só o
- * JSON já validado. Assim a prévia é instantânea e a rota de gravação continua
- * simples — e protegida por sessão.
- */
 export function Importacao({
   usuario,
 }: {
@@ -58,7 +59,9 @@ export function Importacao({
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-white/70">{usuario.nome || usuario.email}</span>
+            <span className="text-xs text-white/70">
+              {usuario.nome || usuario.email}
+            </span>
             <Botao variante="secundario" tamanho="sm" onClick={sair}>
               <LogOut className="size-3.5" aria-hidden />
               Sair
@@ -68,35 +71,165 @@ export function Importacao({
       </header>
 
       <main className="mx-auto w-full max-w-5xl space-y-6 px-5 py-8 sm:px-8">
+        <p className="rounded-card border border-borda bg-superficie px-5 py-4 text-sm leading-relaxed text-texto-2">
+          Importe o <strong className="font-medium text-texto">QDD</strong> antes da
+          Tabela OSG: é ele que traz a dotação atualizada de cada ação orçamentária,
+          usada para calcular a participação do OSG e para conferir os registros.
+        </p>
+
+        <ImportarQdd />
         <ImportarOSG />
         <ImportarLeis />
+        <ImportarOrcamentosTematicos />
       </main>
     </div>
   );
 }
 
+function ImportarQdd() {
+  const [previa, setPrevia] = useState<ResultadoQdd | null>(null);
+  const [gravando, setGravando] = useState(false);
+
+  const ler = async (file: File) => {
+    const abas = lerAbas(await file.arrayBuffer());
+    // O QDD sai do sistema com uma aba só; se vier mais, a primeira é a boa.
+    const doNome = Number(file.name.match(/(\d{4})/)?.[1]) || undefined;
+    let r = parseQdd(abas[0].linhas);
+    if (!r.anos.length && doNome) r = parseQdd(abas[0].linhas, doNome);
+    setPrevia(r);
+    if (!r.dotacoes.length) {
+      toast.error("Nenhuma dotação reconhecida no arquivo.");
+      return false;
+    }
+  };
+
+  const gravar = async () => {
+    if (!previa?.dotacoes.length) return;
+    setGravando(true);
+    try {
+      const r = await fetch("/api/qdd", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ qdd: previa.dotacoes }),
+      });
+      const dados = (await r.json()) as { erro?: string; gravados?: number };
+      if (!r.ok) throw new Error(dados.erro ?? "Falha ao gravar.");
+      toast.success(
+        `${dados.gravados} dotações do QDD gravadas para ${previa.anos.join(", ")}.`
+      );
+      setPrevia(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao gravar.");
+    } finally {
+      setGravando(false);
+    }
+  };
+
+  const semExercicio = previa !== null && !previa.anos.length;
+  const totais = previa
+    ? {
+        inicial: previa.dotacoes.reduce((s, d) => s + d.dotacaoInicial, 0),
+        atualizada: previa.dotacoes.reduce((s, d) => s + d.dotacaoAtualizada, 0),
+        liquidado: previa.dotacoes.reduce((s, d) => s + d.liquidado, 0),
+      }
+    : null;
+
+  return (
+    <BlocoImportacao
+      icone={Table2}
+      titulo="QDD do exercício"
+      descricao={
+        <>
+          Quadro de Detalhamento da Despesa (<code className="text-xs">QDD_AAAA.xls</code>).
+          A coluna <code className="text-xs">Ini+Sup+Cor-Red (B)</code> é a dotação
+          atualizada — é nela que aparecem os remanejamentos feitos durante o exercício
+          e as emendas parlamentares, que entram na LOA zeradas.
+        </>
+      }
+      aoLer={ler}
+      limpar={() => setPrevia(null)}
+      acao={
+        previa?.dotacoes.length ? (
+          <div className="flex items-center gap-3">
+            <Botao onClick={gravar} disabled={gravando || semExercicio}>
+              {gravando ? "Gravando…" : `Gravar ${previa.dotacoes.length} dotações`}
+            </Botao>
+            {semExercicio ? (
+              <span className="text-xs text-critico">
+                Sem exercício identificado — não dá para saber o que substituir.
+              </span>
+            ) : null}
+          </div>
+        ) : null
+      }
+    >
+      {previa ? (
+        <>
+          <dl className="grid gap-3 sm:grid-cols-4">
+            <Resumo rotulo="Exercício" valor={previa.anos.join(", ") || "—"} />
+            <Resumo rotulo="Dotações" valor={String(previa.dotacoes.length)} />
+            <Resumo rotulo="Dotação inicial" valor={moeda(totais?.inicial ?? 0)} />
+            <Resumo rotulo="Dotação atualizada" valor={moeda(totais?.atualizada ?? 0)} />
+          </dl>
+          <p className="text-xs text-texto-3">
+            {previa.linhasContabeis} linhas contábeis agregadas · liquidado{" "}
+            {moeda(totais?.liquidado ?? 0)}
+          </p>
+          <Colunas esperadas={COLUNAS_QDD} encontradas={previa.colunasEncontradas} />
+          <ListaAvisos
+            avisos={previa.avisos.map((m) => ({
+              nivel: "aviso" as const,
+              mensagem: m,
+              linhas: [],
+            }))}
+          />
+          <p className="rounded-lg border border-borda bg-superficie-2/60 px-3 py-2 text-xs leading-relaxed text-texto-2">
+            A gravação substitui o exercício inteiro. O QDD é um retrato completo do
+            orçamento, e uma dotação anulada precisa sumir — mesclar a manteria viva
+            para sempre.
+          </p>
+        </>
+      ) : null}
+    </BlocoImportacao>
+  );
+}
+
 function ImportarOSG() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [arquivo, setArquivo] = useState<string | null>(null);
   const [previa, setPrevia] = useState<ResultadoOSG | null>(null);
+  const [avisosQdd, setAvisosQdd] = useState<Aviso[]>([]);
   const [modo, setModo] = useState<Modo>("substituir");
   const [gravando, setGravando] = useState(false);
 
-  const aoEscolher = async (file: File) => {
+  const ler = async (file: File) => {
+    const abas = lerAbas(await file.arrayBuffer());
+    const alvo =
+      abas.find((a) => a.nome.trim().toLowerCase() === "tabela_osg") ?? abas[0];
+    if (!alvo) {
+      toast.error("A planilha não tem nenhuma aba legível.");
+      return false;
+    }
+    const r = parseTabelaOSG(alvo.linhas);
+    setPrevia(r);
+    if (!r.registros.length) {
+      toast.error("Nenhuma linha reconhecida na planilha.");
+      return false;
+    }
+
+    // A conferência das dotações depende do QDD já carregado no banco.
     try {
-      const abas = lerAbas(await file.arrayBuffer());
-      const alvo =
-        abas.find((a) => a.nome.trim().toLowerCase() === "tabela_osg") ?? abas[0];
-      if (!alvo) {
-        toast.error("A planilha não tem nenhuma aba legível.");
-        return;
-      }
-      const r = parseTabelaOSG(alvo.linhas);
-      setArquivo(`${file.name} — aba "${alvo.nome}"`);
-      setPrevia(r);
-      if (!r.registros.length) toast.error("Nenhuma linha reconhecida na planilha.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não consegui ler o arquivo.");
+      const resp = await fetch(`/api/qdd?anos=${r.anos.join(",")}`, {
+        cache: "no-store",
+      });
+      const dados = (await resp.json()) as { qdd?: DotacaoQdd[] };
+      setAvisosQdd(checarContraQdd(r.registros, dados.qdd ?? []).avisos);
+    } catch {
+      setAvisosQdd([
+        {
+          nivel: "aviso",
+          mensagem: "Não consegui ler o QDD para conferir as dotações.",
+          linhas: [],
+        },
+      ]);
     }
   };
 
@@ -115,8 +248,7 @@ function ImportarOSG() {
         `${dados.gravados} registros gravados nos exercícios ${previa.anos.join(", ")}.`
       );
       setPrevia(null);
-      setArquivo(null);
-      if (inputRef.current) inputRef.current.value = "";
+      setAvisosQdd([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gravar.");
     } finally {
@@ -129,46 +261,37 @@ function ImportarOSG() {
   const totalLiq = previa?.registros.reduce((s, r) => s + r.liqOsg, 0) ?? 0;
 
   return (
-    <Card className="p-6">
-      <header className="mb-5 flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lilas-claro text-lilas">
-          <FileSpreadsheet className="size-5" aria-hidden />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold text-texto">Tabela OSG</h2>
-          <p className="mt-1 text-sm leading-relaxed text-texto-2">
-            Arquivo <code className="text-xs">OSG TOTAL.xlsx</code>, aba{" "}
-            <code className="text-xs">Tabela_OSG</code>. Uma linha por entrega
-            apropriada.
-          </p>
-        </div>
-      </header>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void aoEscolher(f);
-        }}
-      />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Botao variante="secundario" onClick={() => inputRef.current?.click()}>
-          <Upload className="size-4" aria-hidden />
-          Escolher planilha
-        </Botao>
-        {arquivo ? (
-          <span className="text-xs text-texto-2">{arquivo}</span>
-        ) : (
-          <span className="text-xs text-texto-3">Nenhum arquivo selecionado</span>
-        )}
-      </div>
-
+    <BlocoImportacao
+      icone={FileSpreadsheet}
+      titulo="Tabela OSG"
+      descricao={
+        <>
+          Arquivo <code className="text-xs">OSG TOTAL.xlsx</code>, aba{" "}
+          <code className="text-xs">Tabela_OSG</code>. Uma linha por entrega apropriada.
+        </>
+      }
+      aoLer={ler}
+      limpar={() => {
+        setPrevia(null);
+        setAvisosQdd([]);
+      }}
+      acao={
+        previa?.registros.length ? (
+          <div className="flex items-center gap-3">
+            <Botao onClick={gravar} disabled={gravando || erros.length > 0}>
+              {gravando ? "Gravando…" : "Gravar no banco"}
+            </Botao>
+            {erros.length ? (
+              <span className="text-xs text-critico">
+                Corrija os erros na planilha antes de gravar.
+              </span>
+            ) : null}
+          </div>
+        ) : null
+      }
+    >
       {previa ? (
-        <div className="mt-6 space-y-5">
+        <>
           <dl className="grid gap-3 sm:grid-cols-4">
             <Resumo rotulo="Registros" valor={String(previa.totalLinhas)} />
             <Resumo
@@ -179,63 +302,8 @@ function ImportarOSG() {
             <Resumo rotulo="Liquidado" valor={moeda(totalLiq)} />
           </dl>
 
-          <div>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-texto-3">
-              Colunas encontradas
-            </h3>
-            <ul className="flex flex-wrap gap-1.5">
-              {COLUNAS_OSG.map((c) => {
-                const ok = previa.colunasEncontradas[c];
-                return (
-                  <li key={c}>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs",
-                        ok
-                          ? "bg-verde/10 text-verde"
-                          : "bg-critico/10 text-critico"
-                      )}
-                    >
-                      {ok ? <Check className="size-3" /> : <X className="size-3" />}
-                      {c}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          {previa.avisos.length ? (
-            <ul className="space-y-2">
-              {previa.avisos.map((a, i) => (
-                <li
-                  key={i}
-                  className={cn(
-                    "flex items-start gap-2 rounded-lg border px-3 py-2 text-xs leading-relaxed",
-                    a.nivel === "erro"
-                      ? "border-critico/30 bg-critico/10 text-critico"
-                      : "border-alerta/40 bg-alerta/10 text-texto-2"
-                  )}
-                >
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                  <span>
-                    {a.mensagem}
-                    {a.linhas.length ? (
-                      <span className="text-texto-3">
-                        {" "}
-                        Linhas: {a.linhas.slice(0, 20).join(", ")}
-                        {a.linhas.length > 20 ? ` e mais ${a.linhas.length - 20}` : ""}.
-                      </span>
-                    ) : null}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-lg border border-verde/30 bg-verde/10 px-3 py-2 text-xs text-verde">
-              Nenhuma inconsistência encontrada.
-            </p>
-          )}
+          <Colunas esperadas={COLUNAS_OSG} encontradas={previa.colunasEncontradas} />
+          <ListaAvisos avisos={[...previa.avisos, ...avisosQdd]} />
 
           <fieldset className="rounded-lg border border-borda p-4">
             <legend className="px-1 text-xs font-medium uppercase tracking-wide text-texto-3">
@@ -258,45 +326,27 @@ function ImportarOSG() {
               />
             </div>
           </fieldset>
-
-          <div className="flex items-center gap-3">
-            <Botao
-              onClick={gravar}
-              disabled={gravando || !previa.registros.length || erros.length > 0}
-            >
-              {gravando ? "Gravando…" : "Gravar no banco"}
-            </Botao>
-            {erros.length ? (
-              <span className="text-xs text-critico">
-                Corrija os erros na planilha antes de gravar.
-              </span>
-            ) : null}
-          </div>
-        </div>
+        </>
       ) : null}
-    </Card>
+    </BlocoImportacao>
   );
 }
 
 function ImportarLeis() {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [arquivo, setArquivo] = useState<string | null>(null);
   const [leis, setLeis] = useState<Lei[] | null>(null);
   const [porTipo, setPorTipo] = useState<Record<string, number>>({});
   const [gravando, setGravando] = useState(false);
 
-  const aoEscolher = async (file: File) => {
-    try {
-      const r = parseHistoricoLeis(lerAbas(await file.arrayBuffer()));
-      setArquivo(file.name);
-      setLeis(r.leis);
-      setPorTipo(r.porTipo);
-      if (r.abasIgnoradas.length) {
-        toast.warning(`Abas não encontradas: ${r.abasIgnoradas.join(", ")}.`);
-      }
-      if (!r.leis.length) toast.error("Nenhum instrumento legal reconhecido.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não consegui ler o arquivo.");
+  const ler = async (file: File) => {
+    const r = parseHistoricoLeis(lerAbas(await file.arrayBuffer()));
+    setLeis(r.leis);
+    setPorTipo(r.porTipo);
+    if (r.abasIgnoradas.length) {
+      toast.warning(`Abas não encontradas: ${r.abasIgnoradas.join(", ")}.`);
+    }
+    if (!r.leis.length) {
+      toast.error("Nenhum instrumento legal reconhecido.");
+      return false;
     }
   };
 
@@ -313,8 +363,6 @@ function ImportarLeis() {
       if (!r.ok) throw new Error(dados.erro ?? "Falha ao gravar.");
       toast.success(`${dados.gravados} instrumentos legais gravados.`);
       setLeis(null);
-      setArquivo(null);
-      if (inputRef.current) inputRef.current.value = "";
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao gravar.");
     } finally {
@@ -325,49 +373,31 @@ function ImportarLeis() {
   const semLink = leis?.filter((l) => !l.url).length ?? 0;
 
   return (
-    <Card className="p-6">
-      <header className="mb-5 flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lilas-claro text-lilas">
-          <Gavel className="size-5" aria-hidden />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold text-texto">Histórico de leis</h2>
-          <p className="mt-1 text-sm leading-relaxed text-texto-2">
-            Arquivo{" "}
-            <code className="text-xs">
-              HISTÓRICO DE LEIS ORÇAMENTO SENSÍVEL AO GÊNERO.xlsx
-            </code>
-            . O link do legis.ac.gov.br é lido do hyperlink embutido na célula do
-            número — as colunas de valor da aba LOA são descartadas.
-          </p>
-        </div>
-      </header>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void aoEscolher(f);
-        }}
-      />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Botao variante="secundario" onClick={() => inputRef.current?.click()}>
-          <Upload className="size-4" aria-hidden />
-          Escolher planilha
-        </Botao>
-        {arquivo ? (
-          <span className="text-xs text-texto-2">{arquivo}</span>
-        ) : (
-          <span className="text-xs text-texto-3">Nenhum arquivo selecionado</span>
-        )}
-      </div>
-
+    <BlocoImportacao
+      icone={Gavel}
+      titulo="Histórico de leis"
+      descricao={
+        <>
+          Arquivo{" "}
+          <code className="text-xs">
+            HISTÓRICO DE LEIS ORÇAMENTO SENSÍVEL AO GÊNERO.xlsx
+          </code>
+          . O link do legis.ac.gov.br é lido do hyperlink embutido na célula do número —
+          as colunas de valor da aba LOA são descartadas.
+        </>
+      }
+      aoLer={ler}
+      limpar={() => setLeis(null)}
+      acao={
+        leis?.length ? (
+          <Botao onClick={gravar} disabled={gravando}>
+            {gravando ? "Gravando…" : `Gravar ${leis.length} instrumentos`}
+          </Botao>
+        ) : null
+      }
+    >
       {leis ? (
-        <div className="mt-6 space-y-5">
+        <>
           <ul className="flex flex-wrap gap-1.5">
             {Object.entries(porTipo).map(([tipo, n]) => (
               <li key={tipo}>
@@ -377,68 +407,113 @@ function ImportarLeis() {
               </li>
             ))}
           </ul>
-
           {semLink ? (
-            <p className="flex items-start gap-2 rounded-lg border border-alerta/40 bg-alerta/10 px-3 py-2 text-xs leading-relaxed text-texto-2">
-              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              {semLink} instrumento(s) sem hyperlink na planilha. Vão aparecer no
-              site sem o botão de texto integral.
-            </p>
+            <ListaAvisos
+              avisos={[
+                {
+                  nivel: "aviso",
+                  mensagem: `${semLink} instrumento(s) sem hyperlink na planilha. Vão aparecer no site sem o botão de texto integral.`,
+                  linhas: [],
+                },
+              ]}
+            />
           ) : null}
-
           <p className="text-xs leading-relaxed text-texto-3">
             A gravação substitui todo o histórico: a lista publicada passa a ser
             exatamente a da planilha enviada.
           </p>
+        </>
+      ) : null}
+    </BlocoImportacao>
+  );
+}
 
-          <Botao onClick={gravar} disabled={gravando || !leis.length}>
-            {gravando ? "Gravando…" : `Gravar ${leis.length} instrumentos`}
-          </Botao>
+/**
+ * Relatório do sistema "Orçamentos Temáticos" — a fonte que deve substituir a
+ * planilha manual a partir de 2026, já com a etiquetagem por orçamento temático,
+ * a validação das entregas e a categoria.
+ *
+ * O layout ainda não foi definido, então este campo por enquanto só reconhece o
+ * arquivo: mostra as abas, o cabeçalho e as primeiras linhas, e **não grava
+ * nada**. É com essa leitura que o mapeamento vai ser escrito.
+ */
+function ImportarOrcamentosTematicos() {
+  const [abas, setAbas] = useState<Aba[] | null>(null);
+
+  const ler = async (file: File) => {
+    const lidas = lerAbas(await file.arrayBuffer());
+    setAbas(lidas);
+    if (!lidas.length) {
+      toast.error("Não consegui abrir o arquivo.");
+      return false;
+    }
+    toast.info("Formato registrado na tela. Nada foi gravado no banco.");
+  };
+
+  return (
+    <BlocoImportacao
+      icone={LayoutList}
+      titulo="Relatório Orçamentos Temáticos"
+      descricao={
+        <>
+          Relatório do sistema em que o QDD do exercício é etiquetado por orçamento
+          temático, com a validação das entregas e a categoria.{" "}
+          <strong className="font-medium text-texto">
+            Ainda em reconhecimento de formato:
+          </strong>{" "}
+          o arquivo é lido e exibido aqui, mas nada é gravado até o mapeamento das
+          colunas ser definido.
+        </>
+      }
+      aoLer={ler}
+      limpar={() => setAbas(null)}
+    >
+      {abas ? (
+        <div className="space-y-4">
+          {abas.map((aba) => {
+            const cabecalho =
+              aba.linhas.findIndex(
+                (l) => l.filter((c) => String(c ?? "").trim()).length >= 3
+              ) ?? 0;
+            const inicio = Math.max(0, cabecalho);
+            return (
+              <div key={aba.nome} className="rounded-lg border border-borda p-4">
+                <h3 className="text-sm font-semibold text-texto">
+                  Aba &ldquo;{aba.nome}&rdquo;
+                </h3>
+                <p className="mt-0.5 text-xs text-texto-3">
+                  {aba.linhas.length} linhas · {aba.links.size} hyperlinks
+                </p>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <tbody>
+                      {aba.linhas.slice(inicio, inicio + 6).map((linha, i) => (
+                        <tr key={i} className="border-b border-borda last:border-0">
+                          <td className="py-1 pr-3 text-texto-3">{inicio + i + 1}</td>
+                          {linha.slice(0, 12).map((celula, j) => (
+                            <td
+                              key={j}
+                              className="max-w-[16ch] truncate py-1 pr-3 text-texto-2"
+                              title={String(celula ?? "")}
+                            >
+                              {String(celula ?? "")}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+          <p className="rounded-lg border border-alerta/40 bg-alerta/10 px-3 py-2 text-xs leading-relaxed text-texto-2">
+            Nada foi gravado. Guarde uma cópia do arquivo em{" "}
+            <code className="text-xs">_fontes/</code> para que o mapeamento das colunas
+            seja escrito na próxima rodada.
+          </p>
         </div>
       ) : null}
-    </Card>
-  );
-}
-
-function Resumo({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="rounded-lg border border-borda bg-superficie-2/60 p-3">
-      <dt className="text-xs font-medium uppercase tracking-wide text-texto-3">
-        {rotulo}
-      </dt>
-      <dd className="tabular mt-1 text-sm font-semibold text-texto">{valor}</dd>
-    </div>
-  );
-}
-
-function Opcao({
-  nome,
-  marcado,
-  aoMarcar,
-  titulo,
-  descricao,
-}: {
-  nome: string;
-  marcado: boolean;
-  aoMarcar: () => void;
-  titulo: string;
-  descricao: string;
-}) {
-  return (
-    <label className="flex cursor-pointer items-start gap-2.5">
-      <input
-        type="radio"
-        name={nome}
-        checked={marcado}
-        onChange={aoMarcar}
-        className="mt-1 accent-[var(--lilas)]"
-      />
-      <span>
-        <span className="block text-sm font-medium text-texto">{titulo}</span>
-        <span className="block text-xs leading-relaxed text-texto-2">
-          {descricao}
-        </span>
-      </span>
-    </label>
+    </BlocoImportacao>
   );
 }

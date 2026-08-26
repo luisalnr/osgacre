@@ -263,14 +263,12 @@ export function parseTabelaOSG(linhas: unknown[][]): ResultadoOSG {
   const liqMaiorQueAprop = brutos
     .filter((b) => b.liqOsg > b.apropOsg + 0.01)
     .map((b) => b.linhaPlanilha);
-  // A apropriação nunca deveria passar do orçamento aprovado da dotação —
-  // quando passa, é sinal de coluna preenchida errado na planilha de origem.
-  const apropAcimaDoProjeto = [...grupos.entries()]
-    .filter(([, g]) => g.aprovado > 0 && g.aprop > g.aprovado + 0.01)
-    .map(([k]) => k);
-  const semOrcamentoAprovado = [...grupos.entries()]
-    .filter(([, g]) => g.aprovado <= 0)
-    .map(([k]) => k);
+  // A conferência da apropriação contra o tamanho da dotação NÃO é feita aqui:
+  // a planilha traz o orçamento aprovado, que não cobre remanejamentos nem
+  // emendas parlamentares. Isso é conferido contra o QDD, em `checarContraQdd`.
+  const semProjetoAtividade = brutos
+    .filter((b) => !b.projetoAtividade)
+    .map((b) => b.linhaPlanilha);
 
   if (eixosDesconhecidos.length)
     avisos.push({
@@ -296,17 +294,12 @@ export function parseTabelaOSG(linhas: unknown[][]): ResultadoOSG {
       mensagem: "Liquidado do OSG maior que a apropriação planejada.",
       linhas: liqMaiorQueAprop,
     });
-  if (apropAcimaDoProjeto.length)
+  if (semProjetoAtividade.length)
     avisos.push({
       nivel: "aviso",
-      mensagem: `Apropriação do OSG maior que o orçamento aprovado da dotação em ${apropAcimaDoProjeto.length} projeto(s): ${apropAcimaDoProjeto.join(", ")}.`,
-      linhas: [],
-    });
-  if (semOrcamentoAprovado.length)
-    avisos.push({
-      nivel: "aviso",
-      mensagem: `Sem orçamento aprovado informado em ${semOrcamentoAprovado.length} dotação(ões) — o peso do OSG não será calculado nelas: ${semOrcamentoAprovado.join(", ")}.`,
-      linhas: [],
+      mensagem:
+        "Linha sem código de projeto/atividade — não dá para casar com o QDD nem calcular a participação do OSG na dotação.",
+      linhas: semProjetoAtividade,
     });
 
   const anos = [...new Set(registros.map((r) => r.ano))].sort();

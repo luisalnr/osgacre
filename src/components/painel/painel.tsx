@@ -7,13 +7,19 @@ import { toast } from "sonner";
 import {
   calcularTotais,
   filtrar,
+  indexarQdd,
   opcoesDeFiltro,
   porFuncao,
   porOrgao,
 } from "@/lib/agregacoes";
 import { exportarPdf, exportarXlsx } from "@/lib/exportar";
 import { METODOLOGIA_NOTA } from "@/lib/conteudo";
-import { FILTROS_VAZIOS, type Filtros, type Registro } from "@/lib/types";
+import {
+  FILTROS_VAZIOS,
+  type DotacaoQdd,
+  type Filtros,
+  type Registro,
+} from "@/lib/types";
 import { Botao } from "@/components/ui/primitivos";
 import { BarraFiltros } from "./filtros";
 import { Kpis } from "./kpis";
@@ -23,8 +29,15 @@ import { GraficoEvolucao } from "./charts/evolucao";
 import { GraficoPorCategoria } from "./charts/por-categoria";
 import { GraficoPorEixo } from "./charts/por-eixo";
 
-export function Painel({ registros }: { registros: Registro[] }) {
+export function Painel({
+  registros,
+  qdd,
+}: {
+  registros: Registro[];
+  qdd: DotacaoQdd[];
+}) {
   const opcoes = useMemo(() => opcoesDeFiltro(registros), [registros]);
+  const indiceQdd = useMemo(() => (qdd.length ? indexarQdd(qdd) : null), [qdd]);
   const [filtros, setFiltros] = useState<Filtros>(() => ({
     ...FILTROS_VAZIOS,
     ano: opcoes.anos[0] ?? null,
@@ -59,7 +72,8 @@ export function Painel({ registros }: { registros: Registro[] }) {
     }
     setExportando(formato);
     try {
-      if (formato === "xlsx") await exportarXlsx(filtrados, filtros, totais);
+      if (formato === "xlsx")
+        await exportarXlsx(filtrados, filtros, totais, indiceQdd);
       else await exportarPdf(filtrados, filtros, totais);
       toast.success(
         `Arquivo ${formato.toUpperCase()} gerado com ${totais.dotacoes} dotações.`
@@ -157,7 +171,7 @@ export function Painel({ registros }: { registros: Registro[] }) {
           />
         </div>
 
-        <TabelaDotacoes registros={filtrados} />
+        <TabelaDotacoes registros={filtrados} qdd={indiceQdd} />
 
         <footer className="flex items-start gap-2 pb-8 text-xs leading-relaxed text-texto-3">
           <Download className="mt-0.5 size-3.5 shrink-0" aria-hidden />

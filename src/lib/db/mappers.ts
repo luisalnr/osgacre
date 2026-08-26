@@ -1,5 +1,12 @@
-import type { Lei, Registro, TipoLei } from "../types";
-import type { LeiInsert, LeiRow, RegistroInsert, RegistroRow } from "./schema";
+import type { DotacaoQdd, Lei, Registro, TipoLei } from "../types";
+import type {
+  LeiInsert,
+  LeiRow,
+  QddInsert,
+  QddRow,
+  RegistroInsert,
+  RegistroRow,
+} from "./schema";
 
 /** Postgres devolve `numeric` como string para não perder precisão. */
 const num = (v: string | number | null | undefined): number => {
@@ -63,6 +70,50 @@ export function registroToInsert(r: Registro): RegistroInsert {
 }
 
 export const registrosToInserts = (rs: Registro[]) => rs.map(registroToInsert);
+
+export function rowToQdd(row: QddRow): DotacaoQdd {
+  return {
+    id: row.id,
+    ano: row.ano,
+    orgaoCodigo: row.orgaoCodigo,
+    orgaoNome: row.orgaoNome,
+    unidadeCodigo: row.unidadeCodigo,
+    unidadeNome: row.unidadeNome,
+    projetoAtividade: row.projetoAtividade,
+    aplicacaoProgramada: row.aplicacaoProgramada,
+    funcaoProgramatica: row.funcaoProgramatica,
+    dotacaoInicial: num(row.dotacaoInicial),
+    suplementado: num(row.suplementado),
+    dotacaoAtualizada: num(row.dotacaoAtualizada),
+    empenhado: num(row.empenhado),
+    liquidado: num(row.liquidado),
+    aLiquidar: num(row.aLiquidar),
+    pago: num(row.pago),
+  };
+}
+
+export function qddToInsert(d: DotacaoQdd): QddInsert {
+  return {
+    id: d.id,
+    ano: d.ano,
+    orgaoCodigo: d.orgaoCodigo,
+    orgaoNome: d.orgaoNome,
+    unidadeCodigo: d.unidadeCodigo,
+    unidadeNome: d.unidadeNome,
+    projetoAtividade: d.projetoAtividade,
+    aplicacaoProgramada: d.aplicacaoProgramada,
+    funcaoProgramatica: d.funcaoProgramatica,
+    dotacaoInicial: dec(d.dotacaoInicial),
+    suplementado: dec(d.suplementado),
+    dotacaoAtualizada: dec(d.dotacaoAtualizada),
+    empenhado: dec(d.empenhado),
+    liquidado: dec(d.liquidado),
+    aLiquidar: dec(d.aLiquidar),
+    pago: dec(d.pago),
+  };
+}
+
+export const qddToInserts = (ds: DotacaoQdd[]) => ds.map(qddToInsert);
 
 export function rowToLei(row: LeiRow): Lei {
   return {

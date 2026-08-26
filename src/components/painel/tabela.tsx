@@ -1,8 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { agruparEmDotacoes, pesoNaDotacao } from "@/lib/agregacoes";
+import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  agruparEmDotacoes,
+  pesoNaDotacao,
+  type IndiceQdd,
+  type PesoDotacao,
+} from "@/lib/agregacoes";
 import { corDoEixo } from "@/lib/cores";
 import { moeda, percentual } from "@/lib/formato";
 import { nomeEixo, nomeFuncao, nomePrograma } from "@/lib/referencias";
@@ -22,7 +27,13 @@ const PAGINA = 25;
  * Só as duas colunas do OSG aparecem. O orçamento da dotação inteira fica na
  * linha expandida, como o percentual de participação do OSG.
  */
-export function TabelaDotacoes({ registros }: { registros: Registro[] }) {
+export function TabelaDotacoes({
+  registros,
+  qdd,
+}: {
+  registros: Registro[];
+  qdd: IndiceQdd | null;
+}) {
   const [ordem, setOrdem] = useState<Ordem>("aprop");
   const [visiveis, setVisiveis] = useState(PAGINA);
   const [abertas, setAbertas] = useState<Set<string>>(new Set());
@@ -113,6 +124,7 @@ export function TabelaDotacoes({ registros }: { registros: Registro[] }) {
               <LinhaDotacao
                 key={d.chave}
                 dotacao={d}
+                qdd={qdd}
                 aberta={abertas.has(d.chave)}
                 aoAlternar={() => alternar(d.chave)}
               />
@@ -138,15 +150,17 @@ export function TabelaDotacoes({ registros }: { registros: Registro[] }) {
 
 function LinhaDotacao({
   dotacao: d,
+  qdd,
   aberta,
   aoAlternar,
 }: {
   dotacao: Dotacao;
+  qdd: IndiceQdd | null;
   aberta: boolean;
   aoAlternar: () => void;
 }) {
   const execucao = d.apropOsg ? (d.liqOsg / d.apropOsg) * 100 : null;
-  const peso = pesoNaDotacao(d);
+  const peso = pesoNaDotacao(d, qdd);
   const Chevron = aberta ? ChevronDown : ChevronRight;
 
   return (
@@ -224,19 +238,9 @@ function LinhaDotacao({
                 <span className="font-medium text-texto-2">Unidade: </span>
                 {d.orgaoNome}
               </span>
-              <span>
-                <span className="font-medium text-texto-2">
-                  Participação do OSG na dotação:{" "}
-                </span>
-                {peso !== null ? (
-                  percentual(peso)
-                ) : (
-                  <span title="A planilha de origem não informa o orçamento aprovado desta dotação.">
-                    não informado
-                  </span>
-                )}
-              </span>
             </div>
+
+            <ParticipacaoNaDotacao dotacao={d} peso={peso} />
 
             {d.entregas.some((e) => e.entrega) ? (
               <ul className="space-y-2">
@@ -270,5 +274,77 @@ function LinhaDotacao({
         </tr>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Quanto desta dotação foi apropriado ao OSG, com os dois valores do QDD ao
+ * lado. Sem eles o percentual trocaria de denominador em silêncio — justamente
+ * nos casos de remanejamento e de emenda parlamentar, onde a dotação inicial
+ * não conta a história toda.
+ */
+function ParticipacaoNaDotacao({
+  dotacao: d,
+  peso,
+}: {
+  dotacao: Dotacao;
+  peso: PesoDotacao;
+}) {
+  const { base } = peso;
+  const doQdd = base.origem === "qdd-orgao" || base.origem === "qdd-projeto";
+
+  return (
+    <div className="mb-3 rounded-lg border border-borda bg-superficie px-3 py-2.5">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs">
+        <span className="font-medium text-texto-2">
+          Participação do OSG na dotação:
+        </span>
+
+        {peso.aConferir ? (
+          <span
+            className="inline-flex items-center gap-1 font-semibold text-alerta"
+            title={`A apropriação registrada (${moeda(d.apropOsg)}) supera a dotação ${
+              doQdd ? "no QDD" : "informada na planilha"
+            }. O registro de origem precisa de conferência.`}
+          >
+            <AlertTriangle className="size-3.5" aria-hidden />
+            a conferir
+          </span>
+        ) : peso.percentual !== null ? (
+          <span className="tabular font-semibold text-texto">
+            {percentual(peso.percentual)}
+            <span className="ml-1 font-normal text-texto-3">
+              da dotação {base.usouAtualizada ? "atualizada" : "inicial"}
+            </span>
+          </span>
+        ) : (
+          <span
+            className="text-texto-3"
+            title="Não há dotação informada para esta ação orçamentária."
+            >
+            não informado
+          </span>
+        )}
+      </div>
+
+      {base.inicial !== null || base.atualizada !== null ? (
+        <p className="tabular mt-1.5 text-xs text-texto-3">
+          Dotação inicial {moeda(base.inicial ?? 0)}
+          <span className="mx-1.5">→</span>
+          atualizada {moeda(base.atualizada ?? 0)}
+          {base.liquidadoProjeto !== null ? (
+            <>
+              <span className="mx-1.5">·</span>
+              liquidado da dotação {moeda(base.liquidadoProjeto)}
+              <span className="mx-1.5">·</span>
+              do OSG {moeda(d.liqOsg)}
+            </>
+          ) : null}
+          <span className="ml-1.5 text-texto-3/70">
+            ({doQdd ? "QDD" : "planilha do OSG"})
+          </span>
+        </p>
+      ) : null}
+    </div>
   );
 }

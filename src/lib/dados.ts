@@ -1,10 +1,10 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import { rowToLei, rowToRegistro } from "./db/mappers";
+import { rowToLei, rowToQdd, rowToRegistro } from "./db/mappers";
 import { getDb, hasDatabaseUrl } from "./db/neon";
-import { leis, registros } from "./db/schema";
-import type { Lei, Registro } from "./types";
+import { leis, qdd, registros } from "./db/schema";
+import type { DotacaoQdd, Lei, Registro } from "./types";
 
 /**
  * Leitura dos dados para os server components.
@@ -41,6 +41,24 @@ export async function lerRegistros(): Promise<{
     }
   }
   return { registros: lerSeed<Registro>("seed-osg.json"), origem: "seed" };
+}
+
+/**
+ * O QDD do exercício. É a fonte da dotação inicial e da atualizada usadas para
+ * calcular a participação do OSG em cada dotação — ver `baseDotacao`.
+ */
+export async function lerQdd(): Promise<{ qdd: DotacaoQdd[]; origem: Origem }> {
+  if (hasDatabaseUrl()) {
+    try {
+      const linhas = await getDb().select().from(qdd);
+      if (linhas.length) {
+        return { qdd: linhas.map(rowToQdd), origem: "neon" };
+      }
+    } catch (e) {
+      console.error("Falha ao ler o QDD do Neon; usando o seed.", e);
+    }
+  }
+  return { qdd: lerSeed<DotacaoQdd>("seed-qdd.json"), origem: "seed" };
 }
 
 export async function lerLeis(): Promise<{ leis: Lei[]; origem: Origem }> {

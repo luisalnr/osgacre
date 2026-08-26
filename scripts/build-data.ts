@@ -12,7 +12,9 @@ import path from "node:path";
 import { lerAbas } from "../src/lib/xlsx-io";
 import { parseTabelaOSG } from "../src/lib/parser-osg";
 import { parseHistoricoLeis } from "../src/lib/parser-leis";
+import { parseQdd } from "../src/lib/parser-qdd";
 import { nomeEixo } from "../src/lib/referencias";
+import type { DotacaoQdd } from "../src/lib/types";
 
 const raiz = process.cwd();
 const fontes = path.join(raiz, "_fontes");
@@ -97,7 +99,45 @@ function construirLeis() {
   console.log(`  -> public/data/seed-leis.json`);
 }
 
+function construirQdd() {
+  const arquivos = fs
+    .readdirSync(fontes)
+    .filter((f) => /^QDD_\d{4}\.(xls|xlsx)$/i.test(f))
+    .sort();
+  if (!arquivos.length) {
+    console.log("\nQDD: nenhum arquivo QDD_AAAA.xls em _fontes/ — pulando.");
+    return;
+  }
+
+  const todas: DotacaoQdd[] = [];
+  for (const nome of arquivos) {
+    const abas = lerAbas(fs.readFileSync(path.join(fontes, nome)));
+    // O ano do nome do arquivo é a rede de segurança quando o cabeçalho do
+    // relatório não traz "Exercício: AAAA".
+    const doNome = Number(nome.match(/(\d{4})/)?.[1]);
+    const r = parseQdd(abas[0].linhas, undefined);
+    const ano = r.anos[0] || doNome;
+    const final = r.anos[0] ? r : parseQdd(abas[0].linhas, doNome);
+
+    console.log(`\nQDD ${ano}: ${final.linhasContabeis} linhas contábeis -> ${final.dotacoes.length} dotações`);
+    for (const a of final.avisos) console.log(`  [aviso] ${a}`);
+    const ini = final.dotacoes.reduce((s, d) => s + d.dotacaoInicial, 0);
+    const atu = final.dotacoes.reduce((s, d) => s + d.dotacaoAtualizada, 0);
+    const liq = final.dotacoes.reduce((s, d) => s + d.liquidado, 0);
+    console.log(`  inicial ${brl(ini)} | atualizada ${brl(atu)} | liquidada ${brl(liq)}`);
+    todas.push(...final.dotacoes);
+  }
+
+  fs.writeFileSync(
+    path.join(destino, "seed-qdd.json"),
+    JSON.stringify(todas, null, 2),
+    "utf8"
+  );
+  console.log(`  -> public/data/seed-qdd.json (${todas.length} dotações)`);
+}
+
 fs.mkdirSync(destino, { recursive: true });
 construirOSG();
+construirQdd();
 construirLeis();
 console.log("\nPronto.");

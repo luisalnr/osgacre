@@ -15,8 +15,8 @@ Next.js 16 · React 19 · Tailwind 4 · Recharts · Drizzle + Neon Postgres · d
 
 **A verdade dos dados mora no Neon**, não no repositório.
 
-- `public/data/seed-osg.json` e `seed-leis.json` são a **carga inicial**, geradas a partir
-  das planilhas de `_fontes/`. Elas também servem de reserva: sem `DATABASE_URL`
+- `public/data/seed-osg.json`, `seed-qdd.json` e `seed-leis.json` são a **carga inicial**,
+  geradas a partir das planilhas de `_fontes/`. Elas também servem de reserva: sem `DATABASE_URL`
   configurada, o site sobe mostrando essa carga em vez de quebrar.
 - A atualização de produção acontece pela aba **/admin → Importação**: a planilha é lida
   no navegador, conferida na prévia e gravada no Neon. Não se atualiza dado commitando
@@ -28,21 +28,42 @@ Uma linha da planilha `Tabela_OSG` é uma **entrega apropriada**. Uma **dotaçã
 (exercício + órgão + projeto/atividade) reúne várias entregas — o painel agrupa por
 dotação e abre para mostrar as entregas.
 
-### O detalhe que mais importa nos valores
-
-`Orçamento Aprovado`, `Orçamento Final`, `Valor Liquidado Projeto Todo` e `A Liquidar`
-chegam da planilha **já rateados** pelo número de linhas do grupo (ano, projeto/atividade).
-Somá-los sobre o grupo inteiro devolve o total da dotação; o rateio **ignora o órgão**,
-então esses totais nunca podem ser recalculados dentro do recorte por órgão. Por isso a
-importação os pré-calcula em `orc_aprovado_projeto`, `orc_final_projeto` e
-`liq_projeto_total`.
+### O QDD é a fonte do tamanho da dotação
 
 `Valor de Apropriação OSG` e `Valor Liquidado e Apropriado OSG` são valores reais por
-entrega — são os dois únicos que o painel exibe.
+entrega — são os dois únicos que o painel exibe como coluna.
 
-O indicador **"participação do OSG na dotação"** usa o orçamento *aprovado* do projeto
-como denominador: apropriação e aprovado são ambos números de planejamento, e a razão
-entre eles reproduz a metodologia (categoria 1 dá 100%, categoria 3 dá 50%).
+O tamanho da dotação (para calcular quanto dela foi apropriado ao OSG) **vem do QDD**, não
+da planilha do OSG. Duas razões:
+
+1. As colunas de projeto da planilha chegam rateadas por linha, mas de forma
+   **inconsistente**: em parte das dotações o valor vem repetido em cada linha em vez de
+   dividido, e somar dá o dobro. Elas continuam gravadas (`orc_aprovado_projeto`,
+   `orc_final_projeto`, `liq_projeto_total`) só como reserva, para o site funcionar antes
+   de o QDD ser importado.
+2. A dotação inicial não conta a história toda. Remanejamentos durante o exercício e
+   emendas parlamentares — que entram na LOA zeradas — só aparecem na coluna
+   `Ini+Sup+Cor-Red (B)` do QDD.
+
+**A regra do denominador** (`baseDotacao`, em `src/lib/agregacoes.ts`): a dotação inicial
+quando ela comporta a apropriação, senão a maior entre inicial e atualizada.
+
+- Caso comum (dotação intacta ou reduzida): usa a **inicial**, e a metodologia fecha —
+  categoria 1 dá 100%, categoria 3 dá 50%.
+- Remanejamento (FAPAC 2025/12190000: R$ 233 mil iniciais, R$ 8,97 mi atualizados): usa a
+  **atualizada** → 57,7%.
+- Emenda parlamentar (SEMULHER 2025/80285678: R$ 0 iniciais, R$ 500 mil atualizados): usa
+  a **atualizada** → 100%.
+- Quando nem a inicial nem a atualizada cobrem a apropriação, o painel mostra
+  **"a conferir"** — são 3 dotações hoje, todas erro de registro na planilha de origem.
+
+Usar sempre a atualizada seria errado: em 55 das 150 dotações ela é **menor** que a
+inicial, porque a dotação encolheu durante o exercício.
+
+A junção com o QDD é por `(exercício, órgão, projeto/atividade)`, com recuo para
+`(exercício, projeto/atividade)` — há ações compartilhadas em que a entrega está na PMAC
+mas a dotação, no QDD, aparece na SEJUSP. Não dá para usar unidade: na sigla `719/219`
+o 219 não é o código de unidade do QDD.
 
 ### Conferência
 
@@ -74,7 +95,12 @@ npm run db:seed-admin    # cria o usuário do /admin com ADMIN_EMAIL/ADMIN_PASSW
 ```
 
 `npm run data:build` imprime os totais por exercício, categoria e eixo — use a saída para
-conferir contra a tabela acima antes de mandar para o banco.
+conferir contra a tabela acima antes de mandar para o banco. Ele também lê os arquivos
+`_fontes/QDD_AAAA.xls` e gera `public/data/seed-qdd.json`.
+
+`npx tsx scripts/conferir-base.ts` refaz o cálculo da participação do OSG sobre os seeds e
+lista as dotações marcadas como "a conferir" — vale rodar depois de qualquer troca de
+planilha.
 
 ---
 
@@ -109,10 +135,12 @@ src/
     page.tsx              site institucional
     painel/               painel interativo
     admin/                login + importação (sessão lida no servidor)
-    api/                  registros, leis, auth
+    api/                  registros, qdd, leis, auth
   components/site|painel|admin|ui
   lib/
     parser-osg.ts         Tabela_OSG -> registros, com as checagens da prévia
+    parser-qdd.ts         QDD .xls -> dotações agregadas por órgão/unidade/projeto
+    checagens-qdd.ts      conferência da Tabela OSG contra o QDD do exercício
     parser-leis.ts        histórico de leis; lê o link do legis.ac.gov.br do hyperlink
     agregacoes.ts         agrupamento em dotações, totais, cortes por eixo/categoria
     referencias.ts        eixos da Lei 4.168/2023, categorias do Guia, funções do MTO
@@ -122,14 +150,15 @@ scripts/
   build-data.ts           planilhas -> public/data/*.json
   seed-neon.ts            JSON -> Neon (carga inicial)
   seed-admin.ts           usuário do /admin
+  conferir-base.ts        refaz o cálculo da participação do OSG sobre os seeds
 ```
 
 ---
 
 ## Notas de manutenção
 
-- **Segurança**: toda rota de escrita (`POST`/`DELETE` em `/api/registros` e `/api/leis`)
-  chama `requireSession()` antes de tocar no banco. A tela do `/admin` decidir o que
+- **Segurança**: toda rota de escrita (`POST`/`DELETE` em `/api/registros`, `/api/qdd` e
+  `/api/leis`) chama `requireSession()` antes de tocar no banco. A tela do `/admin` decidir o que
   mostrar é conveniência de interface, não a proteção.
 - **Cores dos gráficos**: os gráficos por eixo ficam na ordem canônica da lei (I a VI), e
   não ordenados por valor. Além de fidelidade à norma, a separação para daltonismo foi
@@ -140,9 +169,13 @@ scripts/
 - **PDF**: as fontes padrão do jsPDF são Latin-1 e descartam em silêncio o que estiver
   fora. `paraPdf()` em `src/lib/exportar.ts` converte travessões e aspas curvas antes de
   escrever.
-- **Novo exercício (2026)**: importe pela aba `/admin` no modo **Substituir exercício** —
-  ele apaga e regrava só os anos presentes no arquivo, deixando 2024 e 2025 intactos.
-  Depois, acrescente o PDF em `public/relatorios/` e o cartão em `RELATORIOS`
-  (`src/lib/conteudo.ts`).
+- **Novo exercício (2026)**: importe primeiro o **QDD** e depois a **Tabela OSG** no modo
+  **Substituir exercício** — ele apaga e regrava só os anos presentes no arquivo, deixando
+  2024 e 2025 intactos. Sem o QDD do exercício, a conferência das dotações não roda e a
+  participação do OSG cai na reserva da planilha. Depois, acrescente o PDF em
+  `public/relatorios/` e o cartão em `RELATORIOS` (`src/lib/conteudo.ts`).
+- **Relatório "Orçamentos Temáticos"**: o quarto campo do `/admin` está em modo
+  reconhecimento — lê o arquivo e mostra abas, cabeçalho e primeiras linhas, mas não grava
+  nada. O parser será escrito quando o layout do relatório estiver definido.
 
 Fonte dos dados: DEPPO/SEPLAN — Comitê de Apuração do Orçamento Sensível ao Gênero (COSG).

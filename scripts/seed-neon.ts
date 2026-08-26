@@ -11,9 +11,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { leisToInserts, registrosToInserts } from "../src/lib/db/mappers";
+import {
+  leisToInserts,
+  qddToInserts,
+  registrosToInserts,
+} from "../src/lib/db/mappers";
 import * as schema from "../src/lib/db/schema";
-import type { Lei, Registro } from "../src/lib/types";
+import type { DotacaoQdd, Lei, Registro } from "../src/lib/types";
 
 function resolverUrl(): string {
   const raw =
@@ -63,13 +67,21 @@ async function inserirEmLotes<T>(
 
 async function main() {
   const registros = lerJson<Registro>("seed-osg.json");
+  const dotacoesQdd = lerJson<DotacaoQdd>("seed-qdd.json");
   const leis = lerJson<Lei>("seed-leis.json");
 
-  console.log(`Carregando ${registros.length} registros e ${leis.length} instrumentos legais.`);
+  console.log(
+    `Carregando ${registros.length} registros, ${dotacoesQdd.length} dotações do QDD e ${leis.length} instrumentos legais.`
+  );
 
   await db.delete(schema.registros);
   await inserirEmLotes("registros", registrosToInserts(registros), (lote) =>
     db.insert(schema.registros).values(lote)
+  );
+
+  await db.delete(schema.qdd);
+  await inserirEmLotes("qdd", qddToInserts(dotacoesQdd), (lote) =>
+    db.insert(schema.qdd).values(lote)
   );
 
   await db.delete(schema.leis);
