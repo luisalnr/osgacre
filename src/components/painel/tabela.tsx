@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Info } from "lucide-react";
 import {
   agruparEmDotacoes,
+  anotacaoDotacao,
   pesoNaDotacao,
+  rotuloBase,
   type IndiceQdd,
   type PesoDotacao,
 } from "@/lib/agregacoes";
@@ -278,10 +280,14 @@ function LinhaDotacao({
 }
 
 /**
- * Quanto desta dotação foi apropriado ao OSG, com os dois valores do QDD ao
- * lado. Sem eles o percentual trocaria de denominador em silêncio — justamente
- * nos casos de remanejamento e de emenda parlamentar, onde a dotação inicial
- * não conta a história toda.
+ * Quanto desta dotação foi apropriado ao OSG, com a dotação inicial e a
+ * atualizada ao lado.
+ *
+ * O percentual só aparece quando o planejado cabe na base. Quando passa dela,
+ * entra uma anotação no lugar do número: calculado sobre a inicial, o excesso
+ * produziria coisas como 8.208% ou 27.375.190% (dotação inicial de R$ 1,00),
+ * que não informam nada. A anotação distingue a dotação suplementada durante o
+ * exercício — rotina orçamentária — do registro que precisa de conferência.
  */
 function ParticipacaoNaDotacao({
   dotacao: d,
@@ -292,6 +298,7 @@ function ParticipacaoNaDotacao({
 }) {
   const { base } = peso;
   const doQdd = base.origem === "qdd-orgao" || base.origem === "qdd-projeto";
+  const anotacao = anotacaoDotacao(base, moeda);
 
   return (
     <div className="mb-3 rounded-lg border border-borda bg-superficie px-3 py-2.5">
@@ -300,29 +307,35 @@ function ParticipacaoNaDotacao({
           Participação do OSG na dotação:
         </span>
 
-        {peso.aConferir ? (
-          <span
-            className="inline-flex items-center gap-1 font-semibold text-alerta"
-            title={`A apropriação registrada (${moeda(d.apropOsg)}) supera a dotação ${
-              doQdd ? "no QDD" : "informada na planilha"
-            }. O registro de origem precisa de conferência.`}
-          >
-            <AlertTriangle className="size-3.5" aria-hidden />
-            a conferir
-          </span>
-        ) : peso.percentual !== null ? (
+        {peso.percentual !== null ? (
           <span className="tabular font-semibold text-texto">
             {percentual(peso.percentual)}
             <span className="ml-1 font-normal text-texto-3">
-              da dotação {base.usouAtualizada ? "atualizada" : "inicial"}
+              da {rotuloBase(base)}
             </span>
           </span>
         ) : (
           <span
-            className="text-texto-3"
-            title="Não há dotação informada para esta ação orçamentária."
-            >
-            não informado
+            className={
+              base.situacao === "a-conferir"
+                ? "inline-flex items-start gap-1.5 text-alerta"
+                : "inline-flex items-start gap-1.5 text-texto-3"
+            }
+          >
+            {base.situacao === "a-conferir" ? (
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            )}
+            <span className="text-pretty">
+              {anotacao}
+              {base.situacao !== "indisponivel" ? (
+                <span className="tabular text-texto-3">
+                  {" "}
+                  Planejado: {moeda(d.apropOsg)}.
+                </span>
+              ) : null}
+            </span>
           </span>
         )}
       </div>

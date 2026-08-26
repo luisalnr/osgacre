@@ -83,34 +83,68 @@ export type OrigemBase =
   | "planilha"
   | "indisponivel";
 
+/**
+ * Situação da dotação diante do que foi planejado para o OSG.
+ *
+ *  - `normal`        o planejado cabe na base; o percentual é exibido.
+ *  - `suplementada`  o planejado passa da dotação inicial da LOA, mas cabe na
+ *                    atualizada: a dotação foi reforçada durante o exercício.
+ *  - `a-conferir`    o planejado passa das duas; o registro de origem está errado.
+ *  - `indisponivel`  não há dotação informada para a ação orçamentária.
+ */
+export type SituacaoDotacao =
+  | "normal"
+  | "suplementada"
+  | "a-conferir"
+  | "indisponivel";
+
 export type BaseDotacao = {
-  /** Denominador escolhido para o percentual. */
+  /** Denominador do percentual. Só existe no estado `normal`. */
   valor: number | null;
   origem: OrigemBase;
+  situacao: SituacaoDotacao;
   inicial: number | null;
   atualizada: number | null;
   /** Liquidado da dotação inteira, quando o QDD está disponível. */
   liquidadoProjeto: number | null;
-  /** A base usada foi a dotação atualizada, e não a inicial. */
-  usouAtualizada: boolean;
+  /** Emenda parlamentar: a base é a dotação atualizada, não a inicial. */
+  ehEmenda: boolean;
 };
 
 const somar = (lista: DotacaoQdd[], campo: keyof DotacaoQdd) =>
   lista.reduce((s, d) => s + (d[campo] as number), 0);
 
 /**
- * Resolve o par (dotação inicial, dotação atualizada) de uma dotação do OSG e
- * escolhe qual serve de denominador.
+ * Emendas parlamentares entram na LOA com dotação inicial zerada por
+ * construção: só recebem valor depois da alocação dos planos de trabalho dos
+ * parlamentares, e isso aparece na dotação atualizada.
  *
- * A regra é: **a inicial quando ela cobre a apropriação, senão a maior das
- * duas**. Não basta usar sempre a atualizada — em 55 das 150 dotações da base
- * atual a atualizada é MENOR que a inicial, porque a dotação foi reduzida
- * durante o exercício; ali a inicial é a referência certa, e é ela que faz a
- * metodologia fechar (categoria 1 dá 100%, categoria 3 dá 50%).
+ * Dois sinais, aceitos em conjunto porque concordam integralmente na base atual
+ * (26 dotações por qualquer um dos critérios) e porque uma mudança de convenção
+ * de nomenclatura ou de faixa de código não derruba a identificação inteira.
+ */
+export function ehEmendaParlamentar(d: Dotacao): boolean {
+  return /emenda/i.test(d.aplicacaoProgramada) || /^8028/.test(d.projetoAtividade);
+}
+
+/** Margem para não classificar arredondamento de centavo como excesso. */
+const TOLERANCIA = 0.01;
+
+/**
+ * Resolve a dotação de referência e classifica a situação.
  *
- * A atualizada entra exatamente nos dois casos que o aprovado não cobre:
- * remanejamento/suplementação durante o exercício, e emendas parlamentares,
- * que nascem com dotação inicial zerada.
+ * A base é a **dotação inicial da LOA**, e não a atualizada: a apropriação do
+ * OSG é um número de planejamento, feito sobre a lei orçamentária. Trocar o
+ * denominador por causa de uma suplementação posterior mudaria o significado do
+ * percentual sem o leitor perceber — e a inicial é o que faz a metodologia
+ * fechar (categoria 1 dá 100%, categoria 3 dá 50%).
+ *
+ * A única exceção são as emendas parlamentares, onde a inicial costuma ser zero
+ * e não existe denominador nenhum sem a atualizada.
+ *
+ * Nas demais dotações, quando o planejado passa da inicial, não se troca a base:
+ * o percentual dá lugar a uma anotação, que distingue a dotação suplementada
+ * (rotina orçamentária) do registro inconsistente.
  */
 export function baseDotacao(d: Dotacao, qdd: IndiceQdd | null): BaseDotacao {
   let inicial: number | null = null;
@@ -140,33 +174,67 @@ export function baseDotacao(d: Dotacao, qdd: IndiceQdd | null): BaseDotacao {
 
   const i = inicial ?? 0;
   const a = atualizada ?? 0;
+  const ehEmenda = ehEmendaParlamentar(d);
+  const referencia = ehEmenda ? a : i;
+
+  let situacao: SituacaoDotacao;
   let valor: number | null = null;
-  let usouAtualizada = false;
-  if (i > 0 && d.apropOsg <= i + 0.01) {
-    valor = i;
-  } else if (Math.max(i, a) > 0) {
-    valor = Math.max(i, a);
-    usouAtualizada = a > i;
+  if (referencia > 0 && d.apropOsg <= referencia + TOLERANCIA) {
+    situacao = "normal";
+    valor = referencia;
+  } else if (a > 0 && d.apropOsg <= a + TOLERANCIA) {
+    situacao = "suplementada";
+  } else if (i > 0 || a > 0) {
+    situacao = "a-conferir";
+  } else {
+    situacao = "indisponivel";
   }
 
-  return { valor, origem, inicial, atualizada, liquidadoProjeto, usouAtualizada };
+  return {
+    valor,
+    origem,
+    situacao,
+    inicial,
+    atualizada,
+    liquidadoProjeto,
+    ehEmenda,
+  };
 }
 
 export type PesoDotacao = {
+  /** Preenchido só quando a situação é `normal`. */
   percentual: number | null;
-  /** A apropriação registrada supera a dotação: o painel mostra "a conferir". */
-  aConferir: boolean;
   base: BaseDotacao;
 };
 
 /** Peso do OSG na dotação: quanto da ação orçamentária foi apropriado ao OSG. */
 export function pesoNaDotacao(d: Dotacao, qdd: IndiceQdd | null): PesoDotacao {
   const base = baseDotacao(d, qdd);
-  if (!base.valor) return { percentual: null, aConferir: false, base };
-  if (d.apropOsg > base.valor * 1.005) {
-    return { percentual: null, aConferir: true, base };
+  const percentual = base.valor ? (d.apropOsg / base.valor) * 100 : null;
+  return { percentual, base };
+}
+
+/** Sobre o que o percentual foi calculado. Vazio quando não há percentual. */
+export function rotuloBase(base: BaseDotacao): string {
+  if (base.situacao !== "normal") return "";
+  return base.ehEmenda ? "dotação atualizada (emenda)" : "dotação inicial";
+}
+
+/**
+ * Texto da anotação que substitui o percentual. Fica aqui, e não na tela, para
+ * que o painel e a exportação digam exatamente a mesma coisa.
+ */
+export function anotacaoDotacao(base: BaseDotacao, moeda: (v: number) => string): string {
+  switch (base.situacao) {
+    case "suplementada":
+      return `Planejado acima da dotação inicial da LOA — a dotação foi suplementada para ${moeda(base.atualizada ?? 0)} durante o exercício.`;
+    case "a-conferir":
+      return "Planejado acima da dotação inicial e também da atualizada — o registro precisa de conferência.";
+    case "indisponivel":
+      return "Não há dotação informada para esta ação orçamentária.";
+    default:
+      return "";
   }
-  return { percentual: (d.apropOsg / base.valor) * 100, aConferir: false, base };
 }
 
 export function calcularTotais(registros: Registro[]): Totais {

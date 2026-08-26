@@ -36,7 +36,7 @@ export const SOBRE = {
 };
 
 export const METODOLOGIA_NOTA =
-  "As colunas do painel são a parcela apropriada ao OSG, não o orçamento da dotação inteira. Ao abrir a linha na tabela detalhada aparecem a dotação inicial e a atualizada da ação orçamentária, vindas do Quadro de Detalhamento da Despesa (QDD), e quanto delas foi apropriado ao OSG. O percentual usa a dotação inicial quando ela comporta a apropriação e a atualizada quando a dotação foi remanejada ou nasceu zerada, como acontece com as emendas parlamentares.";
+  "As colunas do painel são a parcela apropriada ao OSG, não o orçamento da dotação inteira. Ao abrir a linha na tabela detalhada aparecem a dotação inicial e a atualizada da ação orçamentária, vindas do Quadro de Detalhamento da Despesa (QDD), e quanto delas foi apropriado ao OSG. O percentual é calculado sobre a dotação inicial da LOA, porque a apropriação do OSG é um número de planejamento; nas emendas parlamentares, que entram na lei com dotação zerada, a base é a dotação atualizada. Quando o planejado supera a dotação inicial, o percentual dá lugar a uma anotação que informa se a dotação foi suplementada durante o exercício ou se o registro precisa de conferência.";
 
 export type Relatorio = {
   titulo: string;

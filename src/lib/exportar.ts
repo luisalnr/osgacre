@@ -1,6 +1,8 @@
 import {
   agruparEmDotacoes,
+  anotacaoDotacao,
   pesoNaDotacao,
+  rotuloBase,
   type IndiceQdd,
 } from "./agregacoes";
 import { moeda, percentual } from "./formato";
@@ -87,7 +89,8 @@ export async function exportarXlsx(
     { header: "Liquidado OSG", key: "liq", width: 18, style: { numFmt: MOEDA_XLSX } },
     { header: "Execução (%)", key: "execucao", width: 14, style: { numFmt: "0.0%" } },
     { header: "Participação do OSG na dotação (%)", key: "peso", width: 30, style: { numFmt: "0.0%" } },
-    { header: "Base do percentual", key: "baseRotulo", width: 22 },
+    { header: "Base do percentual", key: "baseRotulo", width: 26 },
+    { header: "Anotação", key: "anotacao", width: 70 },
     { header: "Dotação inicial", key: "dotInicial", width: 18, style: { numFmt: MOEDA_XLSX } },
     { header: "Dotação atualizada", key: "dotAtualizada", width: 20, style: { numFmt: MOEDA_XLSX } },
     { header: "Liquidado da dotação", key: "dotLiquidado", width: 20, style: { numFmt: MOEDA_XLSX } },
@@ -111,13 +114,8 @@ export async function exportarXlsx(
       liq: d.liqOsg,
       execucao: d.apropOsg ? d.liqOsg / d.apropOsg : null,
       peso: peso.percentual === null ? null : peso.percentual / 100,
-      baseRotulo: peso.aConferir
-        ? "a conferir"
-        : peso.percentual === null
-          ? "não informada"
-          : base.usouAtualizada
-            ? "dotação atualizada"
-            : "dotação inicial",
+      baseRotulo: rotuloBase(base) || "—",
+      anotacao: anotacaoDotacao(base, moeda),
       dotInicial: base.inicial,
       dotAtualizada: base.atualizada,
       dotLiquidado: base.liquidadoProjeto,

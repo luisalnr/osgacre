@@ -38,7 +38,7 @@ export function checarContraQdd(
   let conferidas = 0;
 
   for (const d of dotacoes) {
-    const { base, aConferir } = pesoNaDotacao(d, indice);
+    const { base } = pesoNaDotacao(d, indice);
     const doQdd = base.origem === "qdd-orgao" || base.origem === "qdd-projeto";
 
     if (!doQdd) {
@@ -47,9 +47,11 @@ export function checarContraQdd(
     }
     conferidas++;
 
-    if (aConferir) {
+    // Só o estado `a-conferir` vira aviso. Dotação suplementada durante o
+    // exercício é rotina orçamentária e apenas ganha uma anotação no painel.
+    if (base.situacao === "a-conferir") {
       acimaDaDotacao.push(
-        `${d.ano}/${d.projetoAtividade} ${d.orgaoSigla} — apropriado ${moeda(d.apropOsg)}, dotação inicial ${moeda(base.inicial ?? 0)}, atualizada ${moeda(base.atualizada ?? 0)}`
+        `${d.ano}/${d.projetoAtividade} ${d.orgaoSigla} — planejado ${moeda(d.apropOsg)}, dotação inicial ${moeda(base.inicial ?? 0)}, atualizada ${moeda(base.atualizada ?? 0)}`
       );
     }
 
@@ -71,7 +73,7 @@ export function checarContraQdd(
   if (acimaDaDotacao.length)
     avisos.push({
       nivel: "aviso",
-      mensagem: `Apropriação acima da dotação registrada no QDD em ${acimaDaDotacao.length} dotação(ões) — no painel elas aparecem como "a conferir": ${acimaDaDotacao.join(" · ")}.`,
+      mensagem: `Planejado do OSG acima da dotação inicial E da atualizada em ${acimaDaDotacao.length} dotação(ões) — o painel troca o percentual por um aviso de conferência: ${acimaDaDotacao.join(" · ")}.`,
       linhas: [],
     });
   if (semCorrespondencia.length)

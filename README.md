@@ -43,22 +43,34 @@ da planilha do OSG. Duas razões:
    de o QDD ser importado.
 2. A dotação inicial não conta a história toda. Remanejamentos durante o exercício e
    emendas parlamentares — que entram na LOA zeradas — só aparecem na coluna
-   `Ini+Sup+Cor-Red (B)` do QDD.
+   `Ini+Sup+Cor-Red (B)` do QDD. Ter os dois valores é o que permite dizer *por que* uma
+   dotação não comporta o planejado.
 
-**A regra do denominador** (`baseDotacao`, em `src/lib/agregacoes.ts`): a dotação inicial
-quando ela comporta a apropriação, senão a maior entre inicial e atualizada.
+**A regra do denominador** (`baseDotacao`, em `src/lib/agregacoes.ts`): a base é a
+**dotação inicial da LOA**. A apropriação do OSG é um número de planejamento, feito sobre a
+lei orçamentária — trocar o denominador por causa de uma suplementação posterior mudaria o
+significado do percentual sem o leitor perceber. É a inicial, também, que faz a metodologia
+fechar: categoria 1 dá 100% e categoria 3 dá 50%.
 
-- Caso comum (dotação intacta ou reduzida): usa a **inicial**, e a metodologia fecha —
-  categoria 1 dá 100%, categoria 3 dá 50%.
-- Remanejamento (FAPAC 2025/12190000: R$ 233 mil iniciais, R$ 8,97 mi atualizados): usa a
-  **atualizada** → 57,7%.
-- Emenda parlamentar (SEMULHER 2025/80285678: R$ 0 iniciais, R$ 500 mil atualizados): usa
-  a **atualizada** → 100%.
-- Quando nem a inicial nem a atualizada cobrem a apropriação, o painel mostra
-  **"a conferir"** — são 3 dotações hoje, todas erro de registro na planilha de origem.
+A exceção são as **emendas parlamentares**, identificadas por "emenda" na aplicação
+programada ou pelo projeto/atividade começando em `8028`. Elas entram na LOA com dotação
+inicial zerada por construção e só recebem valor depois da alocação dos planos de trabalho;
+sem a atualizada não existe denominador. São 26 dotações — em 19 a inicial já é igual à
+atualizada e nada muda.
 
-Usar sempre a atualizada seria errado: em 55 das 150 dotações ela é **menor** que a
-inicial, porque a dotação encolheu durante o exercício.
+Quando o planejado passa da dotação inicial, **a base não muda**: o percentual dá lugar a
+uma anotação, porque o cálculo sobre a inicial produziria coisas como 8.208% ou 27.375.190%
+(dotação inicial de R$ 1,00). São dois estados:
+
+- **suplementada** (5 dotações) — o planejado cabe na dotação atualizada, ou seja, a
+  dotação foi reforçada durante o exercício. Ex.: FAPAC 2025/12190000, R$ 233.007,00
+  iniciais → R$ 8.971.302,24 atualizados. É rotina orçamentária, e não vira aviso na
+  importação.
+- **a conferir** (3 dotações) — nem a atualizada cobre o planejado. São erros de registro na
+  planilha de origem, listados nas checagens da importação: SESACRE 2024/11900000,
+  PCAC 2025/11080000 e IAPEN 2025/21870000.
+
+A anotação aparece no detalhe da linha e na coluna `Anotação` da exportação XLSX.
 
 A junção com o QDD é por `(exercício, órgão, projeto/atividade)`, com recuo para
 `(exercício, projeto/atividade)` — há ações compartilhadas em que a entrega está na PMAC
