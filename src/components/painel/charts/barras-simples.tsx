@@ -63,7 +63,7 @@ export function BarrasSimples({
             interval={0}
           />
           <Tooltip cursor={{ fill: "var(--superficie-2)" }} content={<TooltipFatia />} />
-          <Bar dataKey="aprop" name="Apropriado" fill={COR_UNICA} radius={[0, 4, 4, 0]} barSize={13}>
+          <Bar dataKey="aprop" name="Planejado" fill={COR_UNICA} radius={[0, 4, 4, 0]} barSize={13}>
             <LabelList
               dataKey="aprop"
               position="right"
@@ -91,7 +91,7 @@ function TooltipFatia({
   return (
     <div className="max-w-xs rounded-lg border border-borda bg-superficie p-3 shadow-card-alta">
       <p className="text-xs font-semibold text-texto">{d.rotulo}</p>
-      <p className="tabular mt-1.5 text-xs text-texto-2">Apropriado: {moeda(d.aprop)}</p>
+      <p className="tabular mt-1.5 text-xs text-texto-2">Planejado: {moeda(d.aprop)}</p>
       <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
       {d.execucao !== null ? (
         <p className="mt-1 text-xs text-texto-3">

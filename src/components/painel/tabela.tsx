@@ -88,7 +88,7 @@ export function TabelaDotacoes({
             onChange={(e) => setOrdem(e.target.value as Ordem)}
             className="h-8 rounded-lg border border-borda-forte bg-superficie px-2 text-xs text-texto"
           >
-            <option value="aprop">Maior apropriação</option>
+            <option value="aprop">Maior valor planejado</option>
             <option value="liq">Maior liquidação</option>
             <option value="execucao">Maior execução</option>
             <option value="orgao">Órgão (A-Z)</option>
@@ -111,7 +111,7 @@ export function TabelaDotacoes({
                 Eixo
               </th>
               <th scope="col" className="py-3 pr-4 text-right font-medium">
-                Apropriado
+                Valor planejado OSG
               </th>
               <th scope="col" className="py-3 pr-4 text-right font-medium">
                 Liquidado

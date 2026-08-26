@@ -298,7 +298,7 @@ function ImportarOSG() {
               rotulo="Exercícios"
               valor={previa.anos.length ? previa.anos.join(", ") : "—"}
             />
-            <Resumo rotulo="Apropriado" valor={moeda(totalAprop)} />
+            <Resumo rotulo="Planejado OSG" valor={moeda(totalAprop)} />
             <Resumo rotulo="Liquidado" valor={moeda(totalLiq)} />
           </dl>
 

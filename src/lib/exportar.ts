@@ -85,7 +85,7 @@ export async function exportarXlsx(
     { header: "Programa", key: "programa", width: 34 },
     { header: "Eixo", key: "eixo", width: 32 },
     { header: "Categoria", key: "categoria", width: 11 },
-    { header: "Apropriação OSG", key: "aprop", width: 18, style: { numFmt: MOEDA_XLSX } },
+    { header: "Valor planejado OSG", key: "aprop", width: 20, style: { numFmt: MOEDA_XLSX } },
     { header: "Liquidado OSG", key: "liq", width: 18, style: { numFmt: MOEDA_XLSX } },
     { header: "Execução (%)", key: "execucao", width: 14, style: { numFmt: "0.0%" } },
     { header: "Participação do OSG na dotação (%)", key: "peso", width: 30, style: { numFmt: "0.0%" } },
@@ -137,7 +137,7 @@ export async function exportarXlsx(
     { header: "Eixo", key: "eixo", width: 32 },
     { header: "Categoria", key: "categoria", width: 11 },
     { header: "Entrega apropriada", key: "entrega", width: 80 },
-    { header: "Apropriação OSG", key: "aprop", width: 18, style: { numFmt: MOEDA_XLSX } },
+    { header: "Valor planejado OSG", key: "aprop", width: 20, style: { numFmt: MOEDA_XLSX } },
     { header: "Liquidado OSG", key: "liq", width: 18, style: { numFmt: MOEDA_XLSX } },
   ];
 
@@ -167,7 +167,7 @@ export async function exportarXlsx(
     const [item, ...resto] = linha.split(": ");
     abaResumo.addRow({ item, valor: resto.join(": ") });
   }
-  abaResumo.addRow({ item: "Apropriação OSG", valor: moeda(totais.aprop) });
+  abaResumo.addRow({ item: "Valor planejado OSG", valor: moeda(totais.aprop) });
   abaResumo.addRow({ item: "Liquidado OSG", valor: moeda(totais.liq) });
   abaResumo.addRow({
     item: "Execução",
@@ -214,7 +214,7 @@ export async function exportarPdf(
 
   const resumo = [
     ...descreverFiltros(filtros, new Map()),
-    `Apropriação OSG: ${moeda(totais.aprop)}`,
+    `Valor planejado OSG: ${moeda(totais.aprop)}`,
     `Liquidado OSG: ${moeda(totais.liq)}`,
     `Execução: ${totais.execucao !== null ? percentual(totais.execucao) : "-"}`,
     `Dotações: ${totais.dotacoes} · Entregas: ${totais.entregas} · Órgãos: ${totais.orgaos}`,
@@ -239,7 +239,7 @@ export async function exportarPdf(
         "Proj./Atividade",
         "Eixo",
         "Cat.",
-        "Apropriado",
+        "Planejado OSG",
         "Liquidado",
         "Exec.",
       ],

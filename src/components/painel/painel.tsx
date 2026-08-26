@@ -158,14 +158,14 @@ export function Painel({
 
         <div className="grid gap-4 lg:grid-cols-2">
           <BarrasSimples
-            titulo="Apropriação por função orçamentária"
+            titulo="Valor planejado por função orçamentária"
             subtitulo="Classificação funcional da despesa, conforme a Portaria MOG nº 42/1999 adotada pelo MTO."
             fatias={porFuncao(filtrados)}
             larguraRotulo={196}
           />
           <BarrasSimples
             titulo="Dez maiores unidades executoras"
-            subtitulo="Órgãos e unidades com maior apropriação no recorte selecionado."
+            subtitulo="Órgãos e unidades com maior valor planejado no recorte selecionado."
             fatias={porOrgao(filtrados, 10)}
             larguraRotulo={132}
           />

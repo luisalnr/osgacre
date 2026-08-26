@@ -62,7 +62,7 @@ export function Hero({ exercicio, aprop, liq, execucao, dotacoes }: Props) {
           {exercicio ? (
             <dl className="mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
               <NumeroHero rotulo="Exercício" valor={String(exercicio)} />
-              <NumeroHero rotulo="Apropriado" valor={moedaCurta(aprop)} />
+              <NumeroHero rotulo="Planejado" valor={moedaCurta(aprop)} />
               <NumeroHero rotulo="Liquidado" valor={moedaCurta(liq)} />
               <NumeroHero
                 rotulo="Dotações"

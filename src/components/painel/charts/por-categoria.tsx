@@ -59,7 +59,7 @@ export function GraficoPorCategoria({ registros }: { registros: Registro[] }) {
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[11px] uppercase tracking-wide text-texto-3">
-              Apropriado
+              Planejado
             </span>
             <span className="tabular text-base font-semibold text-texto">
               {moedaCurta(total)}
@@ -116,7 +116,7 @@ function TooltipCategoria({
         Categoria {d.numero} — {cat?.titulo}
       </p>
       <p className="tabular mt-1.5 text-xs text-texto-2">
-        Apropriado: {moeda(d.valor)}
+        Planejado: {moeda(d.valor)}
       </p>
       <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
       <p className="mt-1 text-xs text-texto-3">

@@ -16,7 +16,7 @@ import { Barra, Card } from "@/components/ui/primitivos";
 
 /**
  * Cinco indicadores, todos derivados só das duas colunas que o painel exibe:
- * apropriação e liquidação do OSG. O comparativo com o exercício anterior fica
+ * o valor planejado e o liquidado do OSG. O comparativo com o exercício anterior fica
  * ao lado do número — sem ele, um valor absoluto não diz se subiu ou caiu.
  */
 export function Kpis({
@@ -39,7 +39,7 @@ export function Kpis({
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       <Kpi
         icone={Coins}
-        rotulo="Apropriação OSG"
+        rotulo="Valor planejado OSG"
         valor={moedaCurta(totais.aprop)}
         titulo={moeda(totais.aprop)}
         nota={
@@ -67,7 +67,7 @@ export function Kpis({
         nota={
           varExec !== null && anoAnterior
             ? `${pontosPercentuais(varExec)} sobre ${anoAnterior}`
-            : "Liquidado sobre apropriado"
+            : "Liquidado sobre o planejado"
         }
       />
       <Kpi
@@ -80,7 +80,7 @@ export function Kpis({
         icone={Building2}
         rotulo="Órgãos executores"
         valor={inteiro(totais.orgaos)}
-        nota="Unidades com apropriação no OSG"
+        nota="Unidades com valor planejado no OSG"
       />
     </div>
   );

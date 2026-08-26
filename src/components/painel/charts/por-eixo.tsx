@@ -22,7 +22,7 @@ import { ChartCard, Legenda, TooltipMoeda, type ItemTooltip } from "../chart-car
  * valor: a cor de cada eixo precisa ser estável e a validação de separação para
  * daltonismo foi feita nessa sequência de vizinhos.
  *
- * A cor aqui identifica a MEDIDA (apropriado x liquidado), não o eixo — o eixo
+ * A cor aqui identifica a MEDIDA (planejado x liquidado), não o eixo — o eixo
  * já está escrito no rótulo do eixo Y.
  */
 export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
@@ -43,12 +43,12 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
   return (
     <ChartCard
       titulo="Execução por eixo temático"
-      subtitulo="Apropriação planejada e valor liquidado em cada eixo, na ordem definida pela Lei nº 4.168/2023."
+      subtitulo="Valor planejado do OSG e valor liquidado em cada eixo, na ordem definida pela Lei nº 4.168/2023."
       alturaMinima="min-h-[360px]"
       legenda={
         <Legenda
           itens={[
-            { cor: COR_APROPRIADO, rotulo: "Apropriado" },
+            { cor: COR_APROPRIADO, rotulo: "Planejado" },
             { cor: COR_LIQUIDADO, rotulo: "Liquidado" },
           ]}
         />
@@ -77,7 +77,7 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
             cursor={{ fill: "var(--superficie-2)" }}
             content={<TooltipConteudo />}
           />
-          <Bar dataKey="aprop" name="Apropriado" fill={COR_APROPRIADO} radius={[0, 4, 4, 0]} maxBarSize={16}>
+          <Bar dataKey="aprop" name="Planejado" fill={COR_APROPRIADO} radius={[0, 4, 4, 0]} maxBarSize={16}>
             <LabelList
               dataKey="aprop"
               position="right"

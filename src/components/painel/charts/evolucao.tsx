@@ -36,7 +36,7 @@ export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
       legenda={
         <Legenda
           itens={[
-            { cor: COR_APROPRIADO, rotulo: "Apropriado" },
+            { cor: COR_APROPRIADO, rotulo: "Planejado" },
             { cor: COR_LIQUIDADO, rotulo: "Liquidado" },
           ]}
         />
@@ -50,7 +50,7 @@ export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
           <Tooltip cursor={{ fill: "var(--superficie-2)" }} content={<TooltipMoeda />} />
           <Bar
             dataKey="aprop"
-            name="Apropriado"
+            name="Planejado"
             fill={COR_APROPRIADO}
             radius={[4, 4, 0, 0]}
             barSize={40}

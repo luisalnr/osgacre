@@ -6,7 +6,7 @@ import { Card, Secao, TituloSecao } from "@/components/ui/primitivos";
 export type ValorEixo = { aprop: number; liq: number; participacao: number };
 
 /**
- * Os seis eixos da Lei nº 4.168/2023, na ordem da lei, com o valor apropriado
+ * Os seis eixos da Lei nº 4.168/2023, na ordem da lei, com o valor planejado
  * no exercício mais recente. A ordem é a da norma — não por valor — para que a
  * numeração romana continue fazendo sentido e a cor de cada eixo fique estável.
  */
@@ -22,7 +22,7 @@ export function Eixos({
       <TituloSecao
         sobretitulo="Art. 4º da Lei nº 4.168/2023"
         titulo="Eixos temáticos"
-        descricao="A lei organiza o Orçamento Sensível ao Gênero em seis eixos, cada um reunindo funções orçamentárias específicas. Os valores abaixo são a apropriação planejada do exercício mais recente."
+        descricao="A lei organiza o Orçamento Sensível ao Gênero em seis eixos, cada um reunindo funções orçamentárias específicas. Abaixo, o valor planejado do OSG em cada eixo no exercício mais recente."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
