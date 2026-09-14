@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Download, FileSpreadsheet, FileText, Info } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -65,11 +65,21 @@ export function Painel({
   qdd: DotacaoQdd[];
   leis: Lei[];
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
   const parametros = useSearchParams();
-  const aba = parametros.get("aba");
-  const secaoId: SecaoId = ehSecaoId(aba) ? aba : SECAO_PADRAO;
+  /**
+   * A seção ativa é estado de interface, não de dados: a URL só manda na
+   * primeira renderização, para um link compartilhado abrir na aba certa.
+   *
+   * Antes ela era lida da URL a cada render e trocada por `router.replace`. Como
+   * `/painel` é `force-dynamic`, cada clique na barra lateral disparava uma
+   * navegação do App Router — ida ao servidor, releitura dos dados e o payload
+   * inteiro de volta — só para mostrar uma seção que já estava no navegador. Era
+   * a maior parte da demora ao trocar de aba.
+   */
+  const [secaoId, setSecaoId] = useState<SecaoId>(() => {
+    const aba = parametros.get("aba");
+    return ehSecaoId(aba) ? aba : SECAO_PADRAO;
+  });
   const [recolhida, setRecolhida] = useState(false);
   const secao = SECOES.find((s) => s.id === secaoId) ?? SECOES[0];
   const IconeSecao = secao.icone;
@@ -92,9 +102,18 @@ export function Painel({
   const [exportando, setExportando] = useState<"xlsx" | "pdf" | null>(null);
 
   const trocarSecao = (id: SecaoId) => {
-    const novos = new URLSearchParams(parametros.toString());
+    setSecaoId(id);
+    // `history.replaceState` em vez do router: mantém a aba na URL — o link
+    // continua compartilhável — sem pedir nada ao servidor. Como o
+    // `router.replace` de antes, não cria entrada no histórico, então o botão
+    // Voltar segue saindo do painel em vez de desfazer a troca de aba.
+    const novos = new URLSearchParams(window.location.search);
     novos.set("aba", id);
-    router.replace(`${pathname}?${novos.toString()}`, { scroll: false });
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${novos.toString()}`
+    );
   };
 
   /**
@@ -159,6 +178,12 @@ export function Painel({
     () => filtrar(registros, { ...filtros, ano: null }),
     [registros, filtros]
   );
+
+  // Estes dois estavam sendo chamados direto no JSX, e por isso refaziam a
+  // varredura de `filtrados` a cada render — inclusive quando o que mudava era
+  // a barra lateral recolhendo ou o botão de exportação entrando em "Gerando…".
+  const fatiasFuncao = useMemo(() => porFuncao(filtrados), [filtrados]);
+  const fatiasOrgao = useMemo(() => porOrgao(filtrados, 10), [filtrados]);
 
   const exportar = async (formato: "xlsx" | "pdf") => {
     if (!filtrados.length) {
@@ -329,7 +354,7 @@ export function Painel({
               <BarrasSimples
                 titulo="Valor planejado por função orçamentária"
                 subtitulo="Classificação funcional da despesa, conforme a Portaria MOG nº 42/1999 adotada pelo MTO."
-                fatias={porFuncao(filtrados)}
+                fatias={fatiasFuncao}
                 larguraRotulo={196}
               />
               {/* `larguraRotulo` menor que o do gráfico ao lado: aqui os
@@ -338,7 +363,7 @@ export function Painel({
               <BarrasSimples
                 titulo="Dez maiores órgãos executores"
                 subtitulo="Soma de todas as unidades de cada órgão, no recorte selecionado. O detalhe por unidade orçamentária está na tabela."
-                fatias={porOrgao(filtrados, 10)}
+                fatias={fatiasOrgao}
                 larguraRotulo={72}
               />
             </div>

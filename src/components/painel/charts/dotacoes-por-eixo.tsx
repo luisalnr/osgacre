@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import {
   Bar,
@@ -40,7 +40,11 @@ import { ChartCard, Legenda } from "../chart-card";
  * escondia um exercício calado, que é o defeito que esta regra existe para não
  * repetir.
  */
-export function GraficoDotacoesPorEixo({ registros }: { registros: Registro[] }) {
+export const GraficoDotacoesPorEixo = memo(function GraficoDotacoesPorEixo({
+  registros,
+}: {
+  registros: Registro[];
+}) {
   const [mostrarVariacao, setMostrarVariacao] = useState(false);
   const { anos, porEixo } = useMemo(
     () => dotacoesPorEixoEAno(registros),
@@ -179,6 +183,7 @@ export function GraficoDotacoesPorEixo({ registros }: { registros: Registro[] })
                 fill={cores[i]}
                 radius={[0, 4, 4, 0]}
                 maxBarSize={16}
+                isAnimationActive={false}
               >
                 <LabelList
                   dataKey={`r${ano}`}
@@ -194,7 +199,7 @@ export function GraficoDotacoesPorEixo({ registros }: { registros: Registro[] })
       </ResponsiveContainer>
     </ChartCard>
   );
-}
+});
 
 /**
  * Variação de um exercício para o seguinte, no mesmo eixo.

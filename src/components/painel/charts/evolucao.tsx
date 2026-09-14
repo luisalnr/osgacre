@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 import {
   Bar,
@@ -25,7 +25,11 @@ import { ChartCard, Legenda, TooltipMoeda } from "../chart-card";
  * comparar anos é justamente o ponto — mas respeita os demais filtros, então
  * "evolução do eixo Saúde" continua funcionando.
  */
-export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
+export const GraficoEvolucao = memo(function GraficoEvolucao({
+  registros,
+}: {
+  registros: Registro[];
+}) {
   const dados = useMemo(
     () =>
       porAno(registros).map((f) => ({
@@ -100,12 +104,15 @@ export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
           <XAxis dataKey="ano" tickLine={false} axisLine={false} fontSize={12} />
           <YAxis tickFormatter={moedaCurta} tickLine={false} axisLine={false} fontSize={11} width={86} />
           <Tooltip cursor={{ fill: "var(--superficie-2)" }} content={<TooltipMoeda />} />
+          {/* Sem animação, como as linhas de variação logo abaixo: as barras
+              ficavam 1,5 s crescendo a cada troca de filtro ou de seção. */}
           <Bar
             dataKey="aprop"
             name="Planejado"
             fill={COR_APROPRIADO}
             radius={[4, 4, 0, 0]}
             barSize={40}
+            isAnimationActive={false}
           />
           <Bar
             dataKey="liq"
@@ -113,6 +120,7 @@ export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
             fill={COR_LIQUIDADO}
             radius={[4, 4, 0, 0]}
             barSize={40}
+            isAnimationActive={false}
           />
           {mostrarVariacao ? (
             <>
@@ -166,7 +174,7 @@ export function GraficoEvolucao({ registros }: { registros: Registro[] }) {
       </ResponsiveContainer>
     </ChartCard>
   );
-}
+});
 
 const TAMANHO_BARRA = 40;
 const ESPACO_ENTRE_BARRAS = 2;

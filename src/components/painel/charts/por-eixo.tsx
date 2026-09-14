@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useMemo } from "react";
+
 import {
   Bar,
   BarChart,
@@ -25,26 +27,35 @@ import { ChartCard, Legenda, TooltipMoeda, type ItemTooltip } from "../chart-car
  * A cor aqui identifica a MEDIDA (planejado x liquidado), não o eixo — o eixo
  * já está escrito no rótulo do eixo Y.
  */
-export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
-  const fatias = porEixo(registros);
-  const porChave = new Map(fatias.map((f) => [f.chave, f]));
-
-  const dados = EIXOS.map((e) => {
-    const f = porChave.get(e.slug);
+export const GraficoPorEixo = memo(function GraficoPorEixo({
+  registros,
+}: {
+  registros: Registro[];
+}) {
+  // `memo` mais `useMemo`: sem eles, qualquer estado do painel — recolher a
+  // barra lateral, abrir uma linha da tabela — refazia esta agregação e toda a
+  // árvore do Recharts.
+  const { dados, apurando } = useMemo(() => {
+    const fatias = porEixo(registros);
+    const porChave = new Map(fatias.map((f) => [f.chave, f]));
     return {
-      chave: e.slug,
-      rotulo: e.curto,
-      nome: e.nome,
-      aprop: f?.aprop ?? 0,
-      liq: f?.liq ?? 0,
+      dados: EIXOS.map((e) => {
+        const f = porChave.get(e.slug);
+        return {
+          chave: e.slug,
+          rotulo: e.curto,
+          nome: e.nome,
+          aprop: f?.aprop ?? 0,
+          liq: f?.liq ?? 0,
+        };
+      }),
+      // Com a execução do exercício ainda aberta o gráfico vira de barra única.
+      // Manter a segunda barra zerada seria pior do que retirá-la: uma barra de
+      // liquidado encostada no eixo lê-se como "não executou nada", que é o
+      // oposto do que se sabe.
+      apurando: fatias.length > 0 && fatias.every((f) => f.emApuracao),
     };
-  });
-
-  // Com a execução do exercício ainda aberta o gráfico vira de barra única.
-  // Manter a segunda barra zerada seria pior do que retirá-la: uma barra de
-  // liquidado encostada no eixo lê-se como "não executou nada", que é o oposto
-  // do que se sabe.
-  const apurando = fatias.length > 0 && fatias.every((f) => f.emApuracao);
+  }, [registros]);
 
   return (
     <ChartCard
@@ -91,7 +102,16 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
             cursor={{ fill: "var(--superficie-2)" }}
             content={<TooltipConteudo />}
           />
-          <Bar dataKey="aprop" name="Planejado" fill={COR_APROPRIADO} radius={[0, 4, 4, 0]} maxBarSize={16}>
+          {/* `isAnimationActive={false}` nas duas séries: a animação de 1,5 s do
+              Recharts é o que faz o clique na barra lateral parecer travado. */}
+          <Bar
+            dataKey="aprop"
+            name="Planejado"
+            fill={COR_APROPRIADO}
+            radius={[0, 4, 4, 0]}
+            maxBarSize={16}
+            isAnimationActive={false}
+          >
             <LabelList
               dataKey="aprop"
               position="right"
@@ -102,7 +122,14 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
             />
           </Bar>
           {apurando ? null : (
-            <Bar dataKey="liq" name="Liquidado" fill={COR_LIQUIDADO} radius={[0, 4, 4, 0]} maxBarSize={16}>
+            <Bar
+              dataKey="liq"
+              name="Liquidado"
+              fill={COR_LIQUIDADO}
+              radius={[0, 4, 4, 0]}
+              maxBarSize={16}
+              isAnimationActive={false}
+            >
               <LabelList
                 dataKey="liq"
                 position="right"
@@ -117,7 +144,7 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
       </ResponsiveContainer>
     </ChartCard>
   );
-}
+});
 
 /** Troca o algarismo romano pelo nome do eixo no tooltip. */
 function TooltipConteudo(props: {

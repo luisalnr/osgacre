@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 import {
   Bar,
   BarChart,
@@ -20,7 +22,10 @@ import { ChartCard } from "../chart-card";
  * (o título já nomeia a série). Usado para função orçamentária e para os
  * órgãos executores.
  */
-export function BarrasSimples({
+// `memo` porque este cartão aparece duas vezes na Visão Geral e recebe uma
+// lista já memoizada pelo painel: sem ele, recolher a barra lateral remontava
+// as duas árvores do Recharts.
+export const BarrasSimples = memo(function BarrasSimples({
   titulo,
   subtitulo,
   fatias,
@@ -63,7 +68,17 @@ export function BarrasSimples({
             interval={0}
           />
           <Tooltip cursor={{ fill: "var(--superficie-2)" }} content={<TooltipFatia />} />
-          <Bar dataKey="aprop" name="Planejado" fill={COR_UNICA} radius={[0, 4, 4, 0]} barSize={13}>
+          {/* Sem animação: o Recharts anima 1,5 s a cada montagem e a cada troca
+              de dados, e é ela que faz o painel parecer lento ao trocar de
+              seção ou de filtro. O valor final já está no rótulo da barra. */}
+          <Bar
+            dataKey="aprop"
+            name="Planejado"
+            fill={COR_UNICA}
+            radius={[0, 4, 4, 0]}
+            barSize={13}
+            isAnimationActive={false}
+          >
             <LabelList
               dataKey="aprop"
               position="right"
@@ -77,7 +92,7 @@ export function BarrasSimples({
       </ResponsiveContainer>
     </ChartCard>
   );
-}
+});
 
 function TooltipFatia({
   active,

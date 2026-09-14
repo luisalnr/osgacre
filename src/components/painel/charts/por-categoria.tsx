@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useMemo } from "react";
+
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { porCategoria } from "@/lib/agregacoes";
 import { corDaCategoria } from "@/lib/cores";
@@ -16,15 +18,26 @@ import { ChartCard } from "../chart-card";
  * A legenda à direita traz valor e percentual escritos: nenhuma leitura depende
  * só da cor.
  */
-export function GraficoPorCategoria({ registros }: { registros: Registro[] }) {
-  const fatias = porCategoria(registros);
-  const total = fatias.reduce((s, f) => s + f.aprop, 0);
-  const dados = fatias.map((f) => ({
-    numero: Number(f.chave),
-    rotulo: f.rotulo,
-    valor: f.aprop,
-    liq: f.liq,
-  }));
+export const GraficoPorCategoria = memo(function GraficoPorCategoria({
+  registros,
+}: {
+  registros: Registro[];
+}) {
+  // `memo` mais `useMemo`: o painel guarda estado que nada tem a ver com os
+  // gráficos (barra lateral recolhida, exportação em curso), e cada mudança
+  // desses refazia a agregação e a árvore do Recharts dos seis cartões.
+  const { dados, total } = useMemo(() => {
+    const fatias = porCategoria(registros);
+    return {
+      total: fatias.reduce((s, f) => s + f.aprop, 0),
+      dados: fatias.map((f) => ({
+        numero: Number(f.chave),
+        rotulo: f.rotulo,
+        valor: f.aprop,
+        liq: f.liq,
+      })),
+    };
+  }, [registros]);
 
   return (
     <ChartCard
@@ -98,7 +111,7 @@ export function GraficoPorCategoria({ registros }: { registros: Registro[] }) {
       </div>
     </ChartCard>
   );
-}
+});
 
 function TooltipCategoria({
   active,
