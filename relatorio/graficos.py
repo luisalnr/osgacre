@@ -8,7 +8,10 @@ Gráficos do Relatório do OSG 2026, feitos a partir das exportações do painel
 A entrada é o XLSX que o painel exporta (botão "Exportar XLSX"), um arquivo por
 exercício ou um só com todos — o que importa é que cada exercício apareça em UM
 arquivo só, senão seria somado duas vezes, e o script para com erro nesse caso.
-Os itens (a) e (b) precisam de 2024, 2025 e 2026.
+Os itens (a), (b) e (e) precisam de 2024, 2025 e 2026.
+
+As famílias: (a) categorias, (b) eixos temáticos, (c) funções orçamentárias,
+(d) órgãos e unidades executoras e (e) o total do exercício, sem recorte.
 
 Lê a aba "Entregas", e não "Dotações": na aba de dotações a coluna Categoria
 vem como "2, 3" nas dotações que misturam categorias, e o agrupamento quebraria.
@@ -1132,6 +1135,74 @@ def grafico_execucao_eixo_2025(dados):
     )
 
 
+ANOS_TOTAL = (2024, 2025, 2026)
+
+
+def _exigir_total(totais: dict, anos: tuple[int, ...], grafico: str, medida: str = "plan") -> None:
+    """Mesmo rigor de `exigir`, um nível acima: aqui o grupo é o exercício inteiro."""
+    for ano in anos:
+        t = totais.get(ano)
+        if t is None:
+            sys.exit(
+                f"{grafico}: o exercício {ano} não está nas exportações lidas. "
+                f"A figura compara {', '.join(str(a) for a in anos)} e não pode sair pela metade."
+            )
+        if t[medida] is None:
+            sys.exit(
+                f"{grafico}: o liquidado de {ano} está vazio na exportação — o exercício "
+                "ainda está em apuração no painel."
+            )
+
+
+def grafico_planejado_total(dados):
+    """(e.1) Valor planejado total do OSG em 2024, 2025 e 2026, com as variações do período."""
+    t = dados["total"]
+    _exigir_total(t, ANOS_TOTAL, "Planejado total entre exercícios")
+    base, meio, atual = (t[a]["plan"] for a in ANOS_TOTAL)
+
+    # Uma série só, e por isso uma cor só: o exercício está escrito no rótulo do
+    # grupo, então a rampa clara→escura das outras figuras não teria o que
+    # acrescentar aqui — e um terceiro passo de verde exigiria medir contraste e
+    # separação de novo, que o comentário das cores documenta ter sido feito só
+    # para os pares.
+    #
+    # As duas comparações do item (e) vão no complemento cinza da barra de 2026,
+    # junto do valor que o olho já está lendo. 2024 não leva variação: é o
+    # primeiro ano de apuração do OSG e não tem sobre o que variar.
+    complementos = [
+        "· primeiro ano de apuração",
+        f"· {pct((meio / base - 1) * 100, sinal=True)} sobre 2024",
+        f"· {pct((atual / meio - 1) * 100, sinal=True)} sobre 2025"
+        f" · {pct((atual / base - 1) * 100, sinal=True)} sobre 2024",
+    ]
+    valores = [base, meio, atual]
+    return barras_agrupadas(
+        [(str(a), None) for a in ANOS_TOTAL],
+        [("Valor planejado OSG", VERDE_ATUAL, valores)],
+        [[(mi(v), c) for v, c in zip(valores, complementos)]],
+        # Três barras numa série só: altura por barra próxima à das figuras de
+        # categoria, para a família inteira ter o mesmo peso na página.
+        altura=1.9,
+        com_legenda=False,
+    )
+
+
+def grafico_execucao_total_2025(dados):
+    """(e.2) Planejado × liquidado total do OSG em 2025, com a taxa de execução."""
+    t = dados["total"]
+    _exigir_total(t, (2025,), "Execução total em 2025", "liq")
+    # Mesmo molde de a4, b6, c3 e d2 — só que o grupo é o exercício inteiro.
+    return comparar_plan_liq(
+        [(t[2025]["plan"], t[2025]["liq"])],
+        [("Total do OSG", None)],
+        # Um grupo só: a altura é a da legenda mais as duas barras, sem o
+        # respiro que várias faixas pediriam.
+        altura=1.5,
+        espessura_pol=0.24,
+        fmt=mi,
+    )
+
+
 GRAFICOS = [
     ("a1-planejado-categoria-2025-2026.png", grafico_planejado_categoria),
     ("a2-execucao-categoria-2024-2025.png", grafico_execucao_categoria),
@@ -1148,6 +1219,8 @@ GRAFICOS = [
     ("c3-execucao-funcao-2025.png", grafico_execucao_funcao_2025),
     ("d1-planejado-orgao-2025-2026.png", grafico_planejado_orgao),
     ("d2-execucao-orgao-2025.png", grafico_execucao_orgao_2025),
+    ("e1-planejado-total-2024-2025-2026.png", grafico_planejado_total),
+    ("e2-execucao-total-2025.png", grafico_execucao_total_2025),
 ]
 
 
@@ -2077,6 +2150,47 @@ def notas_explicativas(dados: dict, entregas: list[dict], datas: list[str]) -> s
         ],
     )
 
+    # e1
+    entrada(
+        "e1-planejado-total-2024-2025-2026.png",
+        "Valor planejado OSG, total do exercício, 2024 a 2026",
+        "O valor total apropriado ao OSG em cada um dos três exercícios apurados, sem recorte por categoria, "
+        "eixo, função ou órgão.",
+        "Uma barra por exercício, do mais antigo para o mais recente. Ao lado do valor, em cinza, a variação "
+        "sobre o exercício anterior; na barra de 2026, também a variação sobre 2024, primeiro ano de apuração.",
+        [
+            f"Planejado: {mi(tot[2024][0])} em 2024, {mi(tot[2025][0])} em 2025 e {mi(tot[2026][0])} em 2026.",
+            f"De 2025 para 2026: {_var(tot[2025][0], tot[2026][0])}.",
+            f"De 2024 para 2026, o período inteiro de apuração: {_var(tot[2024][0], tot[2026][0])}.",
+            f"Dotações: {ndot[2024]} em 2024, {ndot[2025]} em 2025 e {ndot[2026]} em 2026.",
+        ],
+        [
+            "Valores em reais correntes, sem correção pela inflação: a comparação entre exercícios é nominal, e "
+            "parte do crescimento apenas acompanha a variação de preços.",
+            "Cada exercício tem a sua própria lei orçamentária, por isso os valores não se somam.",
+        ],
+    )
+
+    # e2
+    entrada(
+        "e2-execucao-total-2025.png",
+        "Planejado, liquidado e execução OSG, total do exercício, 2025",
+        "O total planejado e o total liquidado do OSG em 2025, com a taxa de execução do exercício.",
+        "Duas barras: o planejado (verde) e o liquidado (lilás), com a execução em cinza ao lado do liquidado — "
+        "quanto do planejado do exercício foi liquidado.",
+        [
+            f"Planejado {mi(tot[2025][0])} e liquidado {mi(tot[2025][1])}.",
+            f"Execução do exercício: {execucao_total(2025)}.",
+            f"Diferença entre o planejado e o liquidado: {mi(tot[2025][0] - tot[2025][1])}.",
+            f"Para comparar, a execução de 2024 foi de {execucao_total(2024)}.",
+        ],
+        [
+            "2026 não aparece: o exercício está em apuração e o painel não publica o liquidado enquanto o COSG "
+            "não fecha o ano.",
+            "O detalhamento desta mesma execução, por órgão, unidade e dotação, está na Tabela 6.",
+        ],
+    )
+
     # Tabela 6
     d25 = {k: g for (a, k), g in dados["dot"].items() if a == 2025}
     maior = max(d25, key=lambda k: d25[k]["liq"])
@@ -2192,9 +2306,27 @@ def conferir(dados: dict, entregas: list[dict], nomes_funcao: dict[str, str]) ->
         # Dotações distintas do exercício, sem agrupamento — o número que o
         # painel publica (121 em 2026). A soma por categoria pode passar dele.
         dotacoes = len({e["dot"] for e in entregas if e["ano"] == ano})
+        execucao = None if tot_liq is None or not tot_plan else tot_liq / tot_plan * 100
         print(
             f"  {ano}  {'':<38} {reais(tot_plan):>18}  "
-            f"{'em apuração' if tot_liq is None else reais(tot_liq):>17}  {'':>9}  {dotacoes:>8}"
+            f"{'em apuração' if tot_liq is None else reais(tot_liq):>17}  "
+            f"{'' if execucao is None else pct(execucao):>9}  {dotacoes:>8}"
+        )
+        # No CSV também, e não só no console: são estes os números por trás das
+        # barras da família (e), e o cabeçalho do arquivo promete que o CSV traz
+        # o que está por trás de cada barra. A participação fica vazia — sobre o
+        # total do exercício ela seria sempre 100%.
+        linhas_csv.append(
+            [
+                ano,
+                "Total do exercício",
+                "Total do OSG",
+                _br(tot_plan, 2).replace(".", ""),
+                "" if tot_liq is None else _br(tot_liq, 2).replace(".", ""),
+                "" if execucao is None else _br(execucao, 1),
+                dotacoes,
+                "",
+            ]
         )
 
     # `;` e vírgula decimal, com BOM: é o que o Excel em português abre direto.
@@ -2223,6 +2355,14 @@ def main() -> None:
     conferir_abas(entregas, aba_por_funcao)
     funcoes = somar_por_funcao(entregas, mapa_funcao)
     dados = agregar(entregas)
+    # Total do exercício, sem agrupamento: é o que a família (e) desenha. Entra
+    # aqui, e não em `agregar`, porque depende de `totais_do_ano` — a mesma
+    # conta do `calcularTotais` do painel, entrega a entrega — e não das somas
+    # por grupo, cuja ordem de soma pode diferir num centavo.
+    dados["total"] = {
+        ano: dict(zip(("plan", "liq"), totais_do_ano(entregas, ano)))
+        for ano in sorted({e["ano"] for e in entregas})
+    }
     dados["funcao"] = {k: {"plan": f["plan"], "liq": f["liq"]} for k, f in funcoes.items()}
     dados["dot_funcao"] = {k: {"n": f["n"]} for k, f in funcoes.items()}
     dados["nomes_funcao"] = {cod: f["nome"] for (_, cod), f in sorted(funcoes.items())}
