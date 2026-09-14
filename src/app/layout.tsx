@@ -26,7 +26,10 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     type: "website",
   },
-  icons: { icon: "/logos/seplan-marca.png" },
+  // Sem `icons` aqui de propósito: `icon.png` e `apple-icon.png` estão em
+  // `src/app/` e o Next os detecta pela convenção de arquivo, emitindo as tags
+  // com URL versionada. Declarar também no metadata faria os dois competirem.
+  // Para trocar a marca, rode `python scripts/icones.py <png>`.
 };
 
 export default function RootLayout({
