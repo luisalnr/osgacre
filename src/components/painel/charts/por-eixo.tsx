@@ -40,17 +40,31 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
     };
   });
 
+  // Com a execução do exercício ainda aberta o gráfico vira de barra única.
+  // Manter a segunda barra zerada seria pior do que retirá-la: uma barra de
+  // liquidado encostada no eixo lê-se como "não executou nada", que é o oposto
+  // do que se sabe.
+  const apurando = fatias.length > 0 && fatias.every((f) => f.emApuracao);
+
   return (
     <ChartCard
-      titulo="Execução por eixo temático"
-      subtitulo="Valor planejado do OSG e valor liquidado em cada eixo, na ordem definida pela Lei nº 4.168/2023."
+      titulo={apurando ? "Valor planejado por eixo temático" : "Execução por eixo temático"}
+      subtitulo={
+        apurando
+          ? "Valor planejado do OSG em cada eixo, na ordem definida pela Lei nº 4.168/2023. O liquidado não é exibido enquanto a execução do exercício não for encerrada."
+          : "Valor planejado do OSG e valor liquidado em cada eixo, na ordem definida pela Lei nº 4.168/2023."
+      }
       alturaMinima="min-h-[360px]"
       legenda={
         <Legenda
-          itens={[
-            { cor: COR_APROPRIADO, rotulo: "Planejado" },
-            { cor: COR_LIQUIDADO, rotulo: "Liquidado" },
-          ]}
+          itens={
+            apurando
+              ? [{ cor: COR_APROPRIADO, rotulo: "Planejado" }]
+              : [
+                  { cor: COR_APROPRIADO, rotulo: "Planejado" },
+                  { cor: COR_LIQUIDADO, rotulo: "Liquidado" },
+                ]
+          }
         />
       }
     >
@@ -87,7 +101,18 @@ export function GraficoPorEixo({ registros }: { registros: Registro[] }) {
               fontSize={11}
             />
           </Bar>
-          <Bar dataKey="liq" name="Liquidado" fill={COR_LIQUIDADO} radius={[0, 4, 4, 0]} maxBarSize={16} />
+          {apurando ? null : (
+            <Bar dataKey="liq" name="Liquidado" fill={COR_LIQUIDADO} radius={[0, 4, 4, 0]} maxBarSize={16}>
+              <LabelList
+                dataKey="liq"
+                position="right"
+                formatter={(v) => (Number(v) ? moedaCurta(Number(v)) : "")}
+                className="tabular"
+                fill="var(--texto-3)"
+                fontSize={11}
+              />
+            </Bar>
+          )}
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>

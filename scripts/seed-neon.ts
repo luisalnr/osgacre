@@ -9,8 +9,6 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import {
   leisToInserts,
   qddToInserts,
@@ -18,28 +16,9 @@ import {
 } from "../src/lib/db/mappers";
 import * as schema from "../src/lib/db/schema";
 import type { DotacaoQdd, Lei, Registro } from "../src/lib/types";
+import { abrirDb } from "./conexao";
 
-function resolverUrl(): string {
-  const raw =
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE_URL_UNPOOLED ||
-    "";
-  if (!raw) {
-    console.error("DATABASE_URL não definida. Crie o .env.local a partir do exemplo.");
-    process.exit(1);
-  }
-  try {
-    const u = new URL(raw);
-    u.searchParams.delete("channel_binding");
-    if (!u.searchParams.has("sslmode")) u.searchParams.set("sslmode", "require");
-    return u.toString();
-  } catch {
-    return raw;
-  }
-}
-
-const db = drizzle(neon(resolverUrl()), { schema });
+const db = abrirDb();
 const LOTE = 50;
 
 function lerJson<T>(nome: string): T[] {

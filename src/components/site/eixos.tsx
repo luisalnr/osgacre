@@ -1,9 +1,10 @@
 import { corDoEixo } from "@/lib/cores";
 import { moedaCurta, percentual } from "@/lib/formato";
 import { EIXOS } from "@/lib/referencias";
-import { Card, Secao, TituloSecao } from "@/components/ui/primitivos";
+import { Secao, TituloSecao } from "@/components/ui/primitivos";
 
-export type ValorEixo = { aprop: number; liq: number; participacao: number };
+/** `liq` é `null` no exercício de execução ainda aberta. */
+export type ValorEixo = { aprop: number; liq: number | null; participacao: number };
 
 /**
  * Os seis eixos da Lei nº 4.168/2023, na ordem da lei, com o valor planejado
@@ -22,49 +23,69 @@ export function Eixos({
       <TituloSecao
         sobretitulo="Art. 4º da Lei nº 4.168/2023"
         titulo="Eixos temáticos"
-        descricao="A lei organiza o Orçamento Sensível ao Gênero em seis eixos, cada um reunindo funções orçamentárias específicas. Abaixo, o valor planejado do OSG em cada eixo no exercício mais recente."
+        descricao={
+          exercicio
+            ? `Distribuição do valor planejado do OSG pelos seis eixos definidos na lei, no exercício de ${exercicio}.`
+            : "Os seis eixos definidos pela lei para organizar o Orçamento Sensível ao Gênero."
+        }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Lista editorial, sem a moldura e os efeitos de uma grade de cartões.
+          A pequena linha colorida mantém a identificação visual de cada eixo
+          sem transformar a numeração legal em um badge decorativo. */}
+      <div className="grid border-b border-borda sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-3">
         {EIXOS.map((eixo) => {
           const v = valores[eixo.slug];
           const cor = corDoEixo(eixo.slug);
           return (
-            <Card
+            <article
               key={eixo.slug}
-              className="flex flex-col p-5 transition-shadow hover:shadow-card-alta"
+              className="relative border-t border-borda py-7"
             >
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <span
-                  className="flex size-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
-                  style={{ background: cor }}
-                  aria-hidden
-                >
-                  {eixo.romano}
-                </span>
+              <span
+                className="absolute left-0 top-[-1px] h-0.5 w-10"
+                style={{ background: cor }}
+                aria-hidden
+              />
+
+              <div className="flex items-start justify-between gap-6">
+                <div className="min-w-0">
+                  <p
+                    className="text-xs font-semibold uppercase tracking-[0.14em]"
+                    style={{ color: cor }}
+                  >
+                    Eixo {eixo.romano}
+                  </p>
+                  <h3 className="mt-2 text-base font-semibold text-texto">
+                    {eixo.nome}
+                  </h3>
+                </div>
+
                 {v ? (
-                  <div className="text-right">
-                    <p className="tabular text-lg font-semibold text-texto">
+                  <div className="shrink-0 text-right">
+                    <p className="tabular text-base font-semibold text-texto">
                       {moedaCurta(v.aprop)}
                     </p>
-                    <p className="text-xs text-texto-3">
-                      {percentual(v.participacao)} do OSG
-                      {exercicio ? ` em ${exercicio}` : ""}
+                    <p className="mt-1 text-xs text-texto-3">
+                      {percentual(v.participacao)} do total
                     </p>
                   </div>
                 ) : null}
               </div>
 
-              <h3 className="text-base font-semibold text-texto">{eixo.nome}</h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-texto-2">
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-texto-2">
                 {eixo.descricao}
               </p>
 
-              <p className="mt-4 border-t border-borda pt-3 text-xs leading-relaxed text-texto-3">
-                <span className="font-medium text-texto-2">Funções: </span>
+              <p className="mt-4 text-xs leading-relaxed text-texto-3">
+                <span
+                  className="mr-1 font-medium uppercase tracking-wide text-texto-2"
+                >
+                  Funções
+                </span>
                 {eixo.funcoes.join("; ")}.
               </p>
-            </Card>
+            </article>
           );
         })}
       </div>

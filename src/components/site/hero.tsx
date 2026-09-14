@@ -3,11 +3,14 @@ import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
 import { HERO } from "@/lib/conteudo";
 import { moedaCurta, percentual } from "@/lib/formato";
+import { LARGURA_CONTEUDO } from "@/components/ui/primitivos";
+import { cn } from "@/lib/utils";
 
 type Props = {
   exercicio: number | null;
   aprop: number;
-  liq: number;
+  /** `null` no exercício cuja execução ainda não foi encerrada. */
+  liq: number | null;
   execucao: number | null;
   dotacoes: number;
 };
@@ -30,7 +33,12 @@ export function Hero({ exercicio, aprop, liq, execucao, dotacoes }: Props) {
         }}
       />
 
-      <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-5 pb-16 pt-14 sm:px-8 sm:pb-20 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div
+        className={cn(
+          LARGURA_CONTEUDO,
+          "relative grid gap-10 pb-16 pt-14 sm:pb-20 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center"
+        )}
+      >
         <div>
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-white/90">
             {HERO.chapeu}
@@ -63,7 +71,17 @@ export function Hero({ exercicio, aprop, liq, execucao, dotacoes }: Props) {
             <dl className="mt-10 grid max-w-lg grid-cols-2 gap-x-6 gap-y-5 border-t border-white/15 pt-6 sm:grid-cols-4">
               <NumeroHero rotulo="Exercício" valor={String(exercicio)} />
               <NumeroHero rotulo="Planejado" valor={moedaCurta(aprop)} />
-              <NumeroHero rotulo="Liquidado" valor={moedaCurta(liq)} />
+              {/*
+                No exercício corrente o liquidado é um acumulado parcial. A
+                primeira dobra do site é onde ele seria mais lido como número
+                fechado, então aqui ele dá lugar à ressalva em vez de aparecer
+                com uma nota de rodapé que ninguém lê.
+              */}
+              <NumeroHero
+                rotulo="Liquidado"
+                valor={liq !== null ? moedaCurta(liq) : "—"}
+                nota={liq === null ? "Em apuração" : undefined}
+              />
               <NumeroHero
                 rotulo="Dotações"
                 valor={String(dotacoes)}

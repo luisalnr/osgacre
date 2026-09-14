@@ -78,14 +78,53 @@ export function sessionCookieOptions(maxAgeSec = MAX_AGE_SEC) {
   };
 }
 
+let avisouBypass = false;
+
+/**
+ * Sessão de desenvolvimento, para abrir o /admin antes de o Neon existir.
+ *
+ * Exige as DUAS condições, e elas são independentes de propósito:
+ *
+ * 1. `NODE_ENV !== "production"`. Quem define isso é o Next — `next build` e o
+ *    Vercel gravam "production" e o Next ignora tentativas de sobrescrever
+ *    NODE_ENV por arquivo .env. Então nem vazar a variável para o Vercel abre
+ *    a porta.
+ * 2. `ADMIN_DEV_BYPASS=1` explícito no .env.local, que não vai para o git.
+ *    Sem ele, `npm run dev` continua pedindo login como sempre — o atalho é
+ *    uma escolha de quem roda, não o comportamento padrão do projeto.
+ *
+ * Isto libera a interface. Não libera o banco: as rotas de escrita seguem
+ * gravando no Neon, que sem DATABASE_URL simplesmente não responde.
+ */
+function sessaoDeDesenvolvimento(): SessionPayload | null {
+  if (process.env.NODE_ENV === "production") return null;
+  if (process.env.ADMIN_DEV_BYPASS !== "1") return null;
+
+  if (!avisouBypass) {
+    avisouBypass = true;
+    console.warn(
+      "[osg] ADMIN_DEV_BYPASS ativo: /admin aberto sem login. Só em desenvolvimento."
+    );
+  }
+
+  return {
+    id: "dev-bypass",
+    email: "sem-login@desenvolvimento",
+    nome: "Acesso de desenvolvimento",
+    exp: Math.floor(Date.now() / 1000) + MAX_AGE_SEC,
+  };
+}
+
 /** Lê e valida a sessão dos cookies da request. */
 export async function getSession(): Promise<SessionPayload | null> {
   try {
     const jar = await cookies();
-    return verifySession(jar.get(SESSION_COOKIE)?.value);
+    const sessao = verifySession(jar.get(SESSION_COOKIE)?.value);
+    if (sessao) return sessao;
   } catch {
-    return null;
+    // segue para o bypass, que também pode não valer
   }
+  return sessaoDeDesenvolvimento();
 }
 
 /**

@@ -17,8 +17,8 @@ import { ChartCard } from "../chart-card";
 
 /**
  * Barras horizontais de série única — magnitude pura, um hue só e sem legenda
- * (o título já nomeia a série). Usado para função orçamentária e para as
- * unidades executoras.
+ * (o título já nomeia a série). Usado para função orçamentária e para os
+ * órgãos executores.
  */
 export function BarrasSimples({
   titulo,
@@ -92,7 +92,11 @@ function TooltipFatia({
     <div className="max-w-xs rounded-lg border border-borda bg-superficie p-3 shadow-card-alta">
       <p className="text-xs font-semibold text-texto">{d.rotulo}</p>
       <p className="tabular mt-1.5 text-xs text-texto-2">Planejado: {moeda(d.aprop)}</p>
-      <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
+      {d.liq !== null ? (
+        <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
+      ) : (
+        <p className="text-xs text-texto-3">Liquidado: exercício em apuração</p>
+      )}
       {d.execucao !== null ? (
         <p className="mt-1 text-xs text-texto-3">
           Execução: {percentual(d.execucao)}

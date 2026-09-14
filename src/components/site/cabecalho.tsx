@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BarChart3, Menu, X } from "lucide-react";
 import { NAVEGACAO } from "@/lib/conteudo";
+import { LARGURA_CONTEUDO } from "@/components/ui/primitivos";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,15 +32,19 @@ export function Cabecalho() {
           : "bg-transparent"
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-5 sm:px-8">
+      <div className={cn(LARGURA_CONTEUDO, "flex h-16 items-center gap-4")}>
         <Link href="/" className="flex items-center gap-3" aria-label="Página inicial">
-          <span className="relative block h-8 w-[132px]">
+          {/* O arquivo é 3113x439, ou 7,09:1 — bem mais largo que esta caixa.
+              Com object-contain quem limita é a largura, então a marca ocupa
+              ~23px de altura aqui dentro e sobra folga em cima e embaixo. Para
+              aumentá-la de verdade, é a LARGURA que precisa crescer. */}
+          <span className="relative block h-10 w-[165px]">
             <Image
               src="/logos/seplan-horizontal-branco.png"
               alt="SEPLAN — Secretaria de Estado de Planejamento do Acre"
               fill
               priority
-              sizes="132px"
+              sizes="165px"
               className="object-contain object-left"
             />
           </span>

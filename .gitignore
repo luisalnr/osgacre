@@ -15,3 +15,9 @@ next-env.d.ts
 /*.xlsx
 /*.xls
 ~$*
+
+# gráficos do relatório: as exportações do painel são retrato de um dia, e a
+# saída se refaz a partir delas (o CSV em saida/ registra os números usados)
+/relatorio/dados/*.xlsx
+/relatorio/saida/
+__pycache__/

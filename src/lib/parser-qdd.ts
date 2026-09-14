@@ -1,4 +1,5 @@
 import { hashId } from "./id";
+import { limparNome } from "./orgaos";
 import { chave } from "./referencias";
 import type { DotacaoQdd } from "./types";
 
@@ -6,8 +7,18 @@ import type { DotacaoQdd } from "./types";
  * Leitor do QDD — Quadro de Detalhamento da Despesa.
  *
  * O arquivo vem em `.xls` antigo (BIFF8) com uma linha por conta de despesa e
- * fonte. Aqui ele é agregado para a granularidade da dotação:
- * (exercício, órgão, unidade, projeto/atividade).
+ * fonte, e é **nessa granularidade que ele é guardado**:
+ * (exercício, órgão, unidade, projeto/atividade, fonte, conta de despesa).
+ *
+ * Já foi agregado por dotação, e isso apagava fonte de recurso, categoria
+ * econômica, grupo de natureza, modalidade e elemento — as classificações que a
+ * tabela detalhada e a planilha de exportação mostram. Quem quer o total da
+ * dotação soma as linhas casadas, que é o que `baseDotacao` sempre fez.
+ *
+ * Continua sendo uma agregação, e não uma cópia linha a linha, por precaução: nos
+ * QDD de 2024 e 2025 a chave completa não se repete nenhuma vez, mas se um
+ * exercício futuro trouxer a mesma (fonte, conta) duas vezes na mesma dotação os
+ * valores se somam, em vez de uma linha sobrescrever a outra.
  *
  * A coluna que interessa é `Ini+Sup+Cor-Red (B)`, a dotação atualizada. É ela
  * que reflete remanejamentos durante o exercício e é a única onde as emendas
@@ -21,6 +32,9 @@ export const COLUNAS_QDD = [
   "Aplicação Programada",
   "Função Programática",
   "Projeto Atividade",
+  "Conta de Despesa",
+  "Descrição da Despesa",
+  "Fonte",
   "Dotação Inicial ( A )",
   "Suplementado",
   "Ini+Sup+Cor-Red (B)",
@@ -37,6 +51,9 @@ const ALIASES: Record<string, string[]> = {
   "Aplicação Programada": ["aplicacao programada"],
   "Função Programática": ["funcao programatica"],
   "Projeto Atividade": ["projeto atividade", "projeto/atividade"],
+  "Conta de Despesa": ["conta de despesa", "conta despesa"],
+  "Descrição da Despesa": ["descricao da despesa", "descricao despesa"],
+  Fonte: ["fonte"],
   "Dotação Inicial ( A )": ["dotacao inicial ( a )", "dotacao inicial (a)", "dotacao inicial"],
   Suplementado: ["suplementado"],
   "Ini+Sup+Cor-Red (B)": ["ini+sup+cor-red (b)", "ini+sup+cor-red ( b )", "ini+sup+cor-red"],
@@ -54,6 +71,10 @@ export type ResultadoQdd = {
   dotacoes: DotacaoQdd[];
   /** Linhas contábeis lidas antes da agregação. */
   linhasContabeis: number;
+  /** Dotações distintas (órgão, unidade, projeto) dentro das linhas gravadas. */
+  dotacoesDistintas: number;
+  /** Códigos de fonte de recurso distintos encontrados no arquivo. */
+  fontes: string[];
   colunasEncontradas: Record<string, boolean>;
   anos: number[];
   avisos: string[];
@@ -76,12 +97,20 @@ function numero(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** "721 SECRETARIA DE ESTADO DE SAÚDE" → { codigo: "721", nome: "SECRETARIA…" } */
+/**
+ * "721 SECRETARIA DE ESTADO DE SAÚDE" → { codigo: "721", nome: "SECRETARIA…" }
+ *
+ * O nome passa por `limparNome` aqui, e não na exibição: o QDD grava os nomes
+ * quebrados na largura da coluna do relatório ("MEIO AMBIEN TE", "PENITEN-
+ * CIÁRIA"), e a quebra é artefato de impressão, não dado. Limpar na leitura faz
+ * o nome certo chegar ao banco, ao seed e a quem consumir a API — limpar só na
+ * tela deixaria o texto quebrado viajando em todo payload.
+ */
 function separarCodigo(bruto: string): { codigo: string; nome: string } {
   const t = texto(bruto);
   const m = t.match(/^(\d+)\s*(.*)$/);
-  if (!m) return { codigo: "", nome: t };
-  return { codigo: m[1], nome: m[2].trim() };
+  if (!m) return { codigo: "", nome: limparNome(t) };
+  return { codigo: m[1], nome: limparNome(m[2]) };
 }
 
 /** O cabeçalho fica depois de linhas de título e de parâmetros do relatório. */
@@ -128,6 +157,8 @@ export function parseQdd(linhas: unknown[][], anoInformado?: number): ResultadoQ
     return {
       dotacoes: [],
       linhasContabeis: 0,
+      dotacoesDistintas: 0,
+      fontes: [],
       colunasEncontradas: Object.fromEntries(
         COLUNAS_QDD.map((c) => [c, false])
       ) as Record<string, boolean>,
@@ -169,11 +200,22 @@ export function parseQdd(linhas: unknown[][], anoInformado?: number): ResultadoQ
     if (!orgao.codigo) continue;
 
     linhasContabeis++;
-    const k = `${orgao.codigo}|${unidade.codigo}|${projeto}`;
+
+    // A conta vem espaçada no relatório ("3 3 90 30 00 00"); guardamos os dez
+    // dígitos colados. O subelemento (os quatro últimos) NÃO pode ser cortado:
+    // ele assume 0000 e 9900, e truncar fundiria duas linhas contábeis.
+    const conta = texto(col(linha, "Conta de Despesa")).replace(/\D/g, "");
+    const fonte = texto(col(linha, "Fonte"));
+
+    const k = `${orgao.codigo}|${unidade.codigo}|${projeto}|${fonte}|${conta}`;
     let d = agregado.get(k);
     if (!d) {
       d = {
-        id: hashId("qdd", ano ?? 0, orgao.codigo, unidade.codigo, projeto),
+        // A chave do hash é a chave da agregação, inteira. Se fonte e conta
+        // ficassem de fora, todas as linhas de uma mesma dotação nasceriam com o
+        // mesmo id, e o upsert da API as sobrescreveria uma sobre a outra até
+        // sobrar uma — sem erro nenhum, com números plausíveis.
+        id: hashId("qdd", ano ?? 0, orgao.codigo, unidade.codigo, projeto, fonte, conta),
         ano: ano ?? 0,
         orgaoCodigo: orgao.codigo,
         orgaoNome: orgao.nome,
@@ -182,6 +224,9 @@ export function parseQdd(linhas: unknown[][], anoInformado?: number): ResultadoQ
         projetoAtividade: projeto,
         aplicacaoProgramada: texto(col(linha, "Aplicação Programada")),
         funcaoProgramatica: texto(col(linha, "Função Programática")).replace(/^'/, ""),
+        fonte,
+        contaDespesa: conta,
+        descricaoDespesa: texto(col(linha, "Descrição da Despesa")),
         dotacaoInicial: 0,
         suplementado: 0,
         dotacaoAtualizada: 0,
@@ -208,9 +253,25 @@ export function parseQdd(linhas: unknown[][], anoInformado?: number): ResultadoQ
   if (faltando.length) avisos.push(`Colunas não encontradas: ${faltando.join(", ")}.`);
   if (!dotacoes.length) avisos.push("Nenhuma dotação reconhecida no arquivo.");
 
+  // Sem a coluna Fonte o arquivo ainda é lido, mas colapsa para a granularidade
+  // antiga com tudo em `fonte: ""` — e aí a tabela detalhada e a planilha ficam
+  // sem fonte de recurso, calados. Melhor dizer isso em voz alta.
+  if (!colunasEncontradas["Fonte"]) {
+    avisos.push(
+      "Sem a coluna Fonte, este arquivo não traz fonte de recurso: as dotações entram agregadas, como antes."
+    );
+  }
+
+  const fontes = [...new Set(dotacoes.map((d) => d.fonte).filter(Boolean))].sort();
+  const dotacoesDistintas = new Set(
+    dotacoes.map((d) => `${d.orgaoCodigo}|${d.unidadeCodigo}|${d.projetoAtividade}`)
+  ).size;
+
   return {
     dotacoes,
     linhasContabeis,
+    dotacoesDistintas,
+    fontes,
     colunasEncontradas,
     anos: ano ? [ano] : [],
     avisos,

@@ -1,16 +1,32 @@
 import Image from "next/image";
-import { Check, X } from "lucide-react";
+import { Check, ExternalLink, X } from "lucide-react";
 import { SOBRE } from "@/lib/conteudo";
 import { CATEGORIAS } from "@/lib/referencias";
-import { Card, Etiqueta, Secao, TituloSecao } from "@/components/ui/primitivos";
+import { Secao, TituloSecao } from "@/components/ui/primitivos";
 
 export function Sobre() {
   return (
     <Secao id="sobre">
       <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div>
-          <TituloSecao sobretitulo="Lei nº 4.168/2023" titulo={SOBRE.titulo} />
-          <div className="space-y-4 text-base leading-relaxed text-texto-2">
+          <TituloSecao
+            sobretitulo={
+              <a
+                href="https://legis.ac.gov.br/detalhar/5737"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lilas"
+                aria-label="Abrir a Lei nº 4.168/2023 no Portal da Legislação do Estado do Acre"
+              >
+                Lei nº 4.168/2023
+                <ExternalLink className="size-3" aria-hidden />
+              </a>
+            }
+            titulo={SOBRE.titulo}
+          />
+          {/* Teto próprio: a coluna da grade acompanha a faixa alargada, e sem
+              isto os parágrafos passariam de 130 caracteres por linha. */}
+          <div className="max-w-2xl space-y-4 text-base leading-relaxed text-texto-2">
             {SOBRE.paragrafos.map((p) => (
               <p key={p.slice(0, 24)} className="text-pretty">
                 {p}
@@ -40,13 +56,18 @@ export function Sobre() {
           </ul>
         </div>
 
-        <div className="relative overflow-hidden rounded-card border border-borda bg-superficie-2">
+        {/* Sem moldura e sem fundo: o PNG já vem recortado — alfa zero em
+            ~40% da área — e o cartão em `bg-superficie-2` desenhava atrás dele
+            um retângulo cinza que a ilustração não tem. `object-contain` com
+            altura automática porque `cover` recortava as figuras das pontas
+            quando a coluna fica mais estreita que a arte. */}
+        <div className="relative">
           <Image
             src="/ilustracoes/mulheres-faixa.png"
             alt="Ilustração de cinco mulheres de perfis diversos lado a lado"
             width={1536}
             height={1024}
-            className="h-full w-full object-cover"
+            className="h-auto w-full object-contain"
           />
         </div>
       </div>
@@ -59,20 +80,26 @@ export function Sobre() {
           {SOBRE.comoApura}
         </p>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {/* Mesma lista editorial dos eixos: filete no topo em vez de cartão, o
+            número como rótulo em vez de selo, e a regra de apropriação — o que
+            de fato distingue uma categoria da outra — como dado, não como pílula. */}
+        <ol className="mt-8 grid border-b border-borda md:grid-cols-3 md:gap-x-10">
           {CATEGORIAS.map((c) => (
-            <Card key={c.numero} className="p-5">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-lg bg-lilas-claro text-sm font-semibold text-lilas">
-                  {c.numero}
-                </span>
-                <Etiqueta tom="lilas">{c.regra}</Etiqueta>
-              </div>
-              <h4 className="text-sm font-semibold text-texto">{c.titulo}</h4>
-              <p className="mt-2 text-sm leading-relaxed text-texto-2">{c.descricao}</p>
-            </Card>
+            <li key={c.numero} className="border-t border-borda py-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-lilas">
+                Categoria {c.numero}
+              </p>
+              <h4 className="mt-2 text-base font-semibold text-texto">{c.titulo}</h4>
+              <p className="mt-1 text-sm text-texto-3">
+                Apropriação:{" "}
+                <span className="tabular font-semibold text-texto">{c.apropriacao}</span>
+              </p>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-texto-2">
+                {c.descricao}
+              </p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </Secao>
   );

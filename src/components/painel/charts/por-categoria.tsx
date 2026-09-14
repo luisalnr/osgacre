@@ -57,7 +57,9 @@ export function GraficoPorCategoria({ registros }: { registros: Registro[] }) {
               <Tooltip content={<TooltipCategoria total={total} />} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          {/* z-0 explícito: esta camada é irmã do gráfico e vem depois no DOM,
+              então sem ordem declarada ela pintaria sobre o balão de dados. */}
+          <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center">
             <span className="text-[11px] uppercase tracking-wide text-texto-3">
               Planejado
             </span>
@@ -104,7 +106,7 @@ function TooltipCategoria({
   total,
 }: {
   active?: boolean;
-  payload?: { payload?: { numero: number; valor: number; liq: number } }[];
+  payload?: { payload?: { numero: number; valor: number; liq: number | null } }[];
   total: number;
 }) {
   const d = payload?.[0]?.payload;
@@ -118,7 +120,9 @@ function TooltipCategoria({
       <p className="tabular mt-1.5 text-xs text-texto-2">
         Planejado: {moeda(d.valor)}
       </p>
-      <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
+      {d.liq !== null ? (
+        <p className="tabular text-xs text-texto-2">Liquidado: {moeda(d.liq)}</p>
+      ) : null}
       <p className="mt-1 text-xs text-texto-3">
         {percentual(total ? (d.valor / total) * 100 : 0)} do OSG no recorte
       </p>

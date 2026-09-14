@@ -5,7 +5,9 @@
 
   1. Identidade — verde e amarelo do Governo do Acre, com um acento lilás que é a
      cor associada ao enfrentamento à violência de gênero no estado (Prêmio Laço
-     Lilás, Decreto nº 11.603/2024). Manda no cabeçalho, botões e destaques.
+     Lilás, Decreto nº 11.603/2024). Manda no cabeçalho, botões e destaques — e
+     também na medida "liquidado" dos gráficos, o único ponto em que uma cor de
+     identidade carrega dado. Ver a ressalva em `src/lib/cores.ts`.
 
   2. Séries de gráfico — paleta categórica validada (separação para daltonismo,
      faixa de luminosidade e piso de croma conferidos com o validador). Não usa o
@@ -42,10 +44,24 @@
   --serie-5: #e87ba4;
   --serie-6: #008300;
 
-  /* Categorias 1-2-3 são ordenadas, não nominais: rampa de um hue só. */
-  --cat-1: #86b6ef;
-  --cat-2: #2a78d6;
-  --cat-3: #104281;
+  /*
+    Categorias 1-2-3 são ordenadas, não nominais: rampa de um hue só. O hue é o
+    verde do planejado, porque a rosca de categorias reparte justamente o valor
+    planejado — era azul quando o planejado também era.
+  */
+  --cat-1: #6fd3b0;
+  --cat-2: #12946a;
+  --cat-3: #06503a;
+
+  /*
+    Comparativo entre exercícios: três passos do verde do planejado, do claro
+    para o escuro conforme o tempo avança. O passo 1 é o próprio --serie-3.
+    Numerados, e não "anterior/atual", porque o gráfico pega os N últimos: o
+    exercício mais recente fica sempre com o passo mais forte da rampa.
+  */
+  --exercicio-1: #1baf7a;
+  --exercicio-2: #12875e;
+  --exercicio-3: #0b6647;
 
   --grade: #e6e8e2;
   --eixo: #b9bfb3;
@@ -88,9 +104,14 @@
     --serie-5: #d55181;
     --serie-6: #008300;
 
-    --cat-1: #b7d3f6;
-    --cat-2: #5598e7;
-    --cat-3: #1c5cab;
+    --cat-1: #9fe3ca;
+    --cat-2: #199e70;
+    --cat-3: #12664a;
+
+    /* Inverte: no escuro quem avança é o brilho. */
+    --exercicio-1: #11694b;
+    --exercicio-2: #188e6a;
+    --exercicio-3: #2fc48f;
 
     --grade: #2b2c29;
     --eixo: #4d4f49;
@@ -128,9 +149,14 @@
   --serie-5: #d55181;
   --serie-6: #008300;
 
-  --cat-1: #b7d3f6;
-  --cat-2: #5598e7;
-  --cat-3: #1c5cab;
+  --cat-1: #9fe3ca;
+  --cat-2: #199e70;
+  --cat-3: #12664a;
+
+  /* Inverte: no escuro quem avança é o brilho. */
+  --exercicio-1: #11694b;
+  --exercicio-2: #188e6a;
+  --exercicio-3: #2fc48f;
 
   --grade: #2b2c29;
   --eixo: #4d4f49;
@@ -164,6 +190,9 @@
   --color-cat-1: var(--cat-1);
   --color-cat-2: var(--cat-2);
   --color-cat-3: var(--cat-3);
+  --color-exercicio-1: var(--exercicio-1);
+  --color-exercicio-2: var(--exercicio-2);
+  --color-exercicio-3: var(--exercicio-3);
   --color-grade: var(--grade);
   --color-bom: var(--bom);
   --color-alerta: var(--alerta);
@@ -217,6 +246,14 @@ body {
 }
 .recharts-surface:focus {
   outline: none;
+}
+/*
+  O balão de dados fica acima de qualquer camada sobreposta ao gráfico — como o
+  rótulo central da rosca de categorias, que é HTML irmão do SVG e, sem isto,
+  pinta por cima do balão por vir depois no DOM.
+*/
+.recharts-tooltip-wrapper {
+  z-index: 10;
 }
 
 @keyframes surgir {

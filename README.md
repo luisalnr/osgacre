@@ -22,11 +22,108 @@ Next.js 16 · React 19 · Tailwind 4 · Recharts · Drizzle + Neon Postgres · d
   no navegador, conferida na prévia e gravada no Neon. Não se atualiza dado commitando
   xlsx novo.
 
+### Duas fontes de registro
+
+O OSG mudou de origem no meio do caminho, e as duas convivem:
+
+| Exercício | Fonte | Parser |
+|---|---|---|
+| 2024, 2025 | `OSG TOTAL.xlsx`, aba `Tabela_OSG` — planilha montada à mão pelo COSG | `parser-osg.ts` |
+| 2026 em diante | `OSG_SistemaOrcamentosTematicos.xlsx`, aba `Resultados` — relatório do **Sistema de Orçamentos Temáticos** | `parser-orcamentos-tematicos.ts` |
+
+São dois arquivos separados de propósito: os layouts não se parecem e cada um tem as
+suas exceções. O que os dois compartilham — ler célula, casar coluna por sinônimo,
+achar cabeçalho — está em `parser-comum.ts`, para que não divirjam em silêncio.
+
+Os dois gravam na mesma tabela `osg_registros`, com os mesmos slugs de eixo e os mesmos
+códigos de órgão e unidade. É isso que torna os exercícios comparáveis. Os ids não
+colidem: o parser novo os prefixa com `ot`.
+
 ### Granularidade
 
-Uma linha da planilha `Tabela_OSG` é uma **entrega apropriada**. Uma **dotação**
-(exercício + órgão + projeto/atividade) reúne várias entregas — o painel agrupa por
-dotação e abre para mostrar as entregas.
+Uma linha da planilha é uma **entrega apropriada**. Uma **dotação**
+(exercício + órgão + unidade + projeto/atividade) reúne várias entregas — o painel agrupa
+por dotação e abre para mostrar as entregas.
+
+**O valor muda de nível entre as duas fontes.** A Tabela OSG traz o valor já discriminado
+por entrega. O relatório novo informa o planejado na **dotação**, uma vez só, na primeira
+linha do grupo; apenas as dotações de categoria 2 discriminam por entrega, na coluna
+`Planejado da Entrega`. Nas demais, o valor de cada entrega é rateio — a divisão do valor
+da dotação pelo número de entregas, com o resto dos centavos na primeira, de modo que a
+soma devolva o valor da dotação **ao centavo**. São 6 dotações de 121 em 2026.
+
+`planejado_dotacao` guarda o valor informado pela fonte e serve de conferência; quem soma
+continua somando `aprop_osg`, porque é ele que encolhe junto quando um filtro seleciona
+parte das entregas. O campo `planejado_entrega` nulo é o que marca um valor como rateio, e
+o painel e o XLSX dizem isso na tela em vez de apresentar a divisão como número apurado.
+
+### Ponderador e categoria
+
+O relatório novo traz o `Ponderador` numa coluna própria: 1 na categoria 1, 0,5 na
+categoria 3, **vazio** na categoria 2 — onde não há fator, porque ali o próprio órgão
+discrimina quanto da dotação foi apropriado.
+
+**O `Planejado ponderado` já chega ponderado.** Conferido contra o QDD 2026:
+`planejado ÷ dotação inicial` dá exatamente 0,500 nas 53 dotações da categoria 3 e 1,000
+nas 14 da categoria 1 que não são emenda parlamentar. Aplicar o ponderador de novo na
+importação reduziria o exercício à metade.
+
+O ponderador é gravado como a fonte o informa e conferido contra `ponderadorDe(categoria)`
+(`referencias.ts`), que é também o recuo para 2024/2025 — cuja planilha não tinha a coluna.
+Divergência entre os dois vira aviso na importação, em vez de uma escolha silenciosa.
+
+### Emendas parlamentares
+
+Emenda entra na LOA com **dotação inicial zerada por construção** — só recebe valor depois
+da alocação dos planos de trabalho dos parlamentares, e isso aparece na dotação atualizada.
+O Sistema de Orçamentos Temáticos calcula o planejado sobre a inicial, então **reporta zero
+para todas elas**.
+
+A importação recupera o valor: quando `ehEmendaParlamentar` (`agregacoes.ts`) reconhece a
+dotação **e** o relatório trouxe zero **e** o QDD tem dotação atualizada positiva, o
+planejado passa a ser `ponderador × dotação atualizada`. É o mesmo tratamento que 2024 e
+2025 já davam — lá o COSG preenchia o valor à mão, e `baseDotacao` já usa a atualizada como
+denominador quando a dotação é emenda. Em 2026 são **16 emendas, somando R$ 1.112.400,00**
+(outras duas seguem zeradas porque a atualizada delas ainda é zero).
+
+Só onde o relatório reporta zero. Se o COSG apurou um valor para a emenda, esse valor vence
+— e uma divergência entre ele e a dotação atualizada vira aviso, para o Comitê ver em vez
+de o código escolher.
+
+A coluna **`planejado_origem`** marca a diferença: `relatorio` (o normal) ou
+`dotacao-atualizada`. Sem ela um valor calculado na importação ficaria indistinguível de um
+valor apurado pelo Comitê. Ela aparece na linha expandida da tabela e numa coluna do XLSX.
+
+> **O QDD é um retrato móvel.** Ele muda ao longo do exercício, e as emendas recebem valor
+> progressivamente. Como a derivação é gravada na importação, **reimporte o relatório
+> sempre que atualizar o QDD** — a prévia mostra quantas emendas receberam valor e quanto
+> somam, que é como se confere isso sem abrir o banco.
+
+**Nem toda dotação zerada é emenda.** A 719/637 ação 13460000 (FUNDESEG) tem inicial zero
+porque sua única fonte é a 27130700 — transferência fundo a fundo do FSP, superávit. A
+dotação inicial dela é essa mesmo, e ela fica zerada de propósito; `ehEmendaParlamentar`
+corretamente não a alcança. A importação avisa separadamente sobre dotações zeradas que não
+são emenda, que são exatamente as que merecem conferência.
+
+### Exercícios em apuração
+
+`EXERCICIOS_EM_APURACAO` em `referencias.ts` lista os exercícios cuja execução ainda não
+foi encerrada. Hoje: `[2026]`.
+
+Nesses exercícios o liquidado **é gravado no banco mas não é exibido** — nem nos KPIs, nem
+nos gráficos, nem na tabela, nem no XLSX, nem no PDF. O planejado vem da lei orçamentária e
+está fechado; o liquidado é um acumulado parcial do ano em curso. Exibir os dois lado a
+lado faria o exercício corrente parecer pior do que vai terminar.
+
+A supressão é decidida em `calcularTotais` e `somarPor` (`agregacoes.ts`), que devolvem
+`liq: null`, e não em cada componente — é o que impede o painel, a planilha e o PDF de
+discordarem entre si. Num recorte que mistura exercícios abertos e fechados o liquidado
+**continua aparecendo**: a regra é "todos em apuração", não "algum". No gráfico de evolução
+cada ano responde por si, então 2026 entra com planejado e sem liquidado.
+
+Encerrado o exercício, apaga-se o ano da lista. É uma constante explícita, e não uma
+dedução a partir do ano corrente: quem declara um exercício encerrado é o COSG, e um painel
+publicado que muda sozinho na virada do ano muda sem ninguém ter decidido.
 
 ### O QDD é a fonte do tamanho da dotação
 
@@ -52,39 +149,103 @@ lei orçamentária — trocar o denominador por causa de uma suplementação pos
 significado do percentual sem o leitor perceber. É a inicial, também, que faz a metodologia
 fechar: categoria 1 dá 100% e categoria 3 dá 50%.
 
+Esse fechamento é **exato em 2026**, onde o planejado é calculado pelo próprio sistema como
+`ponderador × dotação inicial` (30 de 30 na categoria 1 e 53 de 53 na categoria 3). Em 2024 e
+2025 o valor é apurado à mão pelo COSG e a razão apenas tende a esses números: seis dotações
+foram apropriadas por outro critério, e `conferir-base.ts` as lista nominalmente.
+
 A exceção são as **emendas parlamentares**, identificadas por "emenda" na aplicação
 programada ou pelo projeto/atividade começando em `8028`. Elas entram na LOA com dotação
 inicial zerada por construção e só recebem valor depois da alocação dos planos de trabalho;
-sem a atualizada não existe denominador. São 26 dotações — em 19 a inicial já é igual à
-atualizada e nada muda.
+sem a atualizada não existe denominador. São 44 dotações nos três exercícios: 9 em 2024,
+17 em 2025 e 18 em 2026.
 
 Quando o planejado passa da dotação inicial, **a base não muda**: o percentual dá lugar a
 uma anotação, porque o cálculo sobre a inicial produziria coisas como 8.208% ou 27.375.190%
 (dotação inicial de R$ 1,00). São dois estados:
 
-- **suplementada** (5 dotações) — o planejado cabe na dotação atualizada, ou seja, a
-  dotação foi reforçada durante o exercício. Ex.: FAPAC 2025/12190000, R$ 233.007,00
-  iniciais → R$ 8.971.302,24 atualizados. É rotina orçamentária, e não vira aviso na
-  importação.
-- **a conferir** (3 dotações) — nem a atualizada cobre o planejado. São erros de registro na
+- **suplementada** (12 dotações: 1 em 2024, 4 em 2025, 7 em 2026) — o planejado cabe na
+  dotação atualizada, ou seja, a dotação foi reforçada durante o exercício. Ex.: FAPAC
+  2025/12190000, R$ 233.007,00 iniciais → R$ 8.971.302,24 atualizados. É rotina
+  orçamentária, e não vira aviso na importação.
+- **a conferir** (4 dotações) — nem a atualizada cobre o planejado. São erros de registro na
   planilha de origem, listados nas checagens da importação: SESACRE 2024/11900000,
-  PCAC 2025/11080000 e IAPEN 2025/21870000.
+  PCAC 2025/11080000 e a IAPEN 21870000, que aparece em 2025 e se repete em 2026.
 
 A anotação aparece no detalhe da linha e na coluna `Anotação` da exportação XLSX.
 
-A junção com o QDD é por `(exercício, órgão, projeto/atividade)`, com recuo para
-`(exercício, projeto/atividade)` — há ações compartilhadas em que a entrega está na PMAC
-mas a dotação, no QDD, aparece na SEJUSP. Não dá para usar unidade: na sigla `719/219`
-o 219 não é o código de unidade do QDD.
+### Órgão e unidade orçamentária
+
+A Tabela OSG traz órgão e unidade fundidos numa string preenchida à mão
+(`721/302 - FUNDHACRE`, `754 - SEOP`), e o que ela chama de órgão é, em parte das linhas,
+o **executor** da entrega — não a unidade onde a dotação está. Na importação, `resolverUnidade`
+(`src/lib/resolver-unidade.ts`) resolve os dois contra o QDD, que é a fonte canônica, e o
+registro é gravado com código e nome de cada um. `721/302 - FUNDHACRE` vira órgão
+`721 SECRETARIA DE ESTADO DE SAÚDE - SESACRE` e unidade
+`302 FUNDAÇÃO HOSPITAL ESTADUAL DO ACRE- FUNDHACRE`.
+
+Não existe regra simples, e três atalhos plausíveis são falsos:
+
+- **"sem barra quer dizer unidade 001"** — das 153 linhas sem barra, 26 pertencem a outra
+  unidade. As 12 da SESACRE estão todas no `721/607 FUNDO ESTADUAL DE SAÚDE`, e 7 da SEASDH,
+  no `760/608 FEAS`.
+- **"o código depois da barra é a unidade"** — `719/219` para o IAPEN não existe em nenhum
+  exercício; no QDD ele é `719/209`.
+- **"o órgão da planilha é o órgão da dotação"** — em 2024, 13 linhas de PMAC, CBMAC e PCAC
+  têm projetos que no QDD só existem na SEJUSP, com a dotação no `719/637 FUNDESEG`.
+
+Quem resolve quase tudo é o projeto/atividade: 149 das 185 linhas casam numa unidade só. As
+outras estão em `EXCECOES_UNIDADE`, cada uma decidida somando o grupo do projeto e comparando
+com o QDD — `Orçamento Aprovado` bate com a dotação inicial e `Orçamento Final` com a
+atualizada, dois sinais que concordam. O que não fechar vira erro na importação, com os
+candidatos, em vez de entrar em silêncio.
+
+Os nomes vêm do QDD, que os grava quebrados na largura da coluna do relatório
+(`MEIO AMBIEN TE`, `PENITEN- CIÁRIA`). `limparNome` (`src/lib/orgaos.ts`) junta o que é
+seguro juntar e deixa em paz `ACRE- FUNDHACRE`, onde o hífen separa a sigla.
+
+A junção com o QDD é por `(exercício, órgão, unidade, projeto/atividade)`, com recuo para
+`(exercício, órgão, projeto/atividade)` e depois `(exercício, projeto/atividade)`.
 
 ### Conferência
 
 Os totais batem com os relatórios publicados:
 
-| Exercício | Entregas | Apropriado | Liquidado | Execução |
-|---|---|---|---|---|
-| 2024 | 82 | R$ 171.143.631,23 | R$ 114.622.947,14 | 67,0% |
-| 2025 | 103 | R$ 220.468.189,96 | R$ 140.031.314,55 | 63,5% |
+| Exercício | Entregas | Dotações | Planejado | Liquidado | Execução |
+|---|---|---|---|---|---|
+| 2024 | 82 | 62 | R$ 171.143.631,23 | R$ 114.622.947,14 | 67,0% |
+| 2025 | 103 | 89 | R$ 220.468.189,96 | R$ 140.031.314,55 | 63,5% |
+| 2026 | 169 | 121 | R$ 262.607.886,87 | *em apuração* | *em apuração* |
+
+Por categoria em 2026: R$ 39.498.032,84 (cat. 1), R$ 88.318.450,56 (cat. 2) e
+R$ 134.791.403,47 (cat. 3). A categoria 1 inclui R$ 1.112.400,00 de emendas parlamentares
+recuperados da dotação atualizada — ver *Emendas parlamentares*, acima. As 121 dotações casam com o QDD 2026 pelo par
+órgão/unidade e projeto — 121 de 121.
+
+**Dois centavos de cuidado.** O relatório de 2026 traz dois valores com fração de centavo
+(R$ 1.684.233,805 e R$ 3.474.893,875) e a coluna do banco tem duas casas. Arredondar a
+metade para cima somaria R$ 261.495.486,88, um centavo acima da soma exata. Por isso
+`centavos()` em `parser-comum.ts` arredonda **a metade para o par**, que não enviesa numa
+direção — as duas frações caem para lados diferentes e o total se preserva.
+
+### O que a importação de 2026 avisa
+
+Quatro avisos aparecem na prévia do `/admin` e não são erro de leitura — são fatos do dado
+que valem conferência com o COSG:
+
+- **16 emendas parlamentares com o planejado recuperado do QDD**, somando R$ 1.112.400,00,
+  e **2 que continuam zeradas** porque a dotação atualizada delas também está em zero. Ver
+  *Emendas parlamentares*, acima.
+- **1 dotação zerada que não é emenda**: a 719/637 ação 13460000, financiada só por
+  superávit. Fica zerada de propósito — a dotação inicial dela é zero mesmo.
+- **Dotações em que o liquidado supera o planejado.** É o efeito de medir o planejado sobre
+  a LOA e o liquidado sobre a execução corrente, que já incorpora suplementações. É também
+  o argumento técnico para não exibir a execução do exercício antes de ele fechar.
+- **2 linhas com `Planejado da Entrega` fora da categoria 2** (linhas 78 e 159). Nelas o
+  valor não vem ponderado e discorda do planejado da dotação, então é ignorado — o valor da
+  entrega sai do rateio. É por isso que o gatilho do rateio é a **categoria**, e nunca a
+  presença da coluna.
+- **2 valores com fração de centavo**, descritos acima.
 
 ---
 
@@ -106,13 +267,27 @@ npm run db:seed          # carga inicial — DESTRUTIVO, apaga e regrava tudo
 npm run db:seed-admin    # cria o usuário do /admin com ADMIN_EMAIL/ADMIN_PASSWORD
 ```
 
+**Entrar no `/admin` sem banco.** O usuário do `/admin` mora na tabela `osg_usuarios`, então sem
+Neon não há conta para logar. Para esse caso existe um login local: gere o hash com
+`npx tsx scripts/hash-senha.ts "sua senha"` e preencha `ADMIN_LOCAL_EMAIL` e
+`ADMIN_LOCAL_SENHA_HASH` no `.env.local` — a senha em texto nunca vai para o arquivo. Ele pede
+e-mail e senha como o login de verdade, usa o mesmo scrypt e a mesma sessão assinada, e só
+funciona com `NODE_ENV != production` **e** sem `DATABASE_URL`: havendo banco, a conta volta a
+ser a de `osg_usuarios` e as variáveis locais ficam inalcançáveis. Em produção quem cria a conta
+é sempre o `db:seed-admin`. Há ainda o `ADMIN_DEV_BYPASS=1`, que abre a área restrita sem senha
+alguma; prefira o login local, que ao menos autentica. Em qualquer dos dois a **importação
+continua falhando** sem `DATABASE_URL` — o que se libera é a interface, não o banco.
+
 `npm run data:build` imprime os totais por exercício, categoria e eixo — use a saída para
 conferir contra a tabela acima antes de mandar para o banco. Ele também lê os arquivos
 `_fontes/QDD_AAAA.xls` e gera `public/data/seed-qdd.json`.
 
-`npx tsx scripts/conferir-base.ts` refaz o cálculo da participação do OSG sobre os seeds e
-lista as dotações marcadas como "a conferir" — vale rodar depois de qualquer troca de
-planilha.
+`npx tsx scripts/conferir-base.ts` é o teste de regressão dos números: refaz o cálculo da
+participação do OSG sobre os seeds, quebra tudo por exercício e compara com a linha de base
+escrita no topo do próprio script. Sai com **código 1** e nomeia a medida divergente quando
+algo sai da linha — rode depois de qualquer troca de planilha e de qualquer mudança em
+`agregacoes.ts`. O bloco `ESPERADO` do script e a tabela de *Conferência* acima são a mesma
+linha de base: mudou um de propósito, mude o outro.
 
 ---
 
@@ -150,7 +325,10 @@ src/
     api/                  registros, qdd, leis, auth
   components/site|painel|admin|ui
   lib/
-    parser-osg.ts         Tabela_OSG -> registros, com as checagens da prévia
+    parser-comum.ts       o que os dois parsers de registro compartilham
+    parser-osg.ts         Tabela_OSG (2024-2025) -> registros, com as checagens da prévia
+    parser-orcamentos-tematicos.ts
+                          Relatório do Sistema de Orçamentos Temáticos (2026+) -> registros
     parser-qdd.ts         QDD .xls -> dotações agregadas por órgão/unidade/projeto
     checagens-qdd.ts      conferência da Tabela OSG contra o QDD do exercício
     parser-leis.ts        histórico de leis; lê o link do legis.ac.gov.br do hyperlink
@@ -162,7 +340,9 @@ scripts/
   build-data.ts           planilhas -> public/data/*.json
   seed-neon.ts            JSON -> Neon (carga inicial)
   seed-admin.ts           usuário do /admin
-  conferir-base.ts        refaz o cálculo da participação do OSG sobre os seeds
+  conferir-base.ts        teste de regressão dos números, por exercício (sai 1 se divergir)
+  hash-senha.ts           gera o scrypt `salt:hash` de uma senha, para o login local
+  conferir-login-local.ts confere as duas guardas do login local (sai 1 se alguma abrir)
 ```
 
 ---
@@ -181,13 +361,29 @@ scripts/
 - **PDF**: as fontes padrão do jsPDF são Latin-1 e descartam em silêncio o que estiver
   fora. `paraPdf()` em `src/lib/exportar.ts` converte travessões e aspas curvas antes de
   escrever.
-- **Novo exercício (2026)**: importe primeiro o **QDD** e depois a **Tabela OSG** no modo
-  **Substituir exercício** — ele apaga e regrava só os anos presentes no arquivo, deixando
-  2024 e 2025 intactos. Sem o QDD do exercício, a conferência das dotações não roda e a
-  participação do OSG cai na reserva da planilha. Depois, acrescente o PDF em
-  `public/relatorios/` e o cartão em `RELATORIOS` (`src/lib/conteudo.ts`).
-- **Relatório "Orçamentos Temáticos"**: o quarto campo do `/admin` está em modo
-  reconhecimento — lê o arquivo e mostra abas, cabeçalho e primeiras linhas, mas não grava
-  nada. O parser será escrito quando o layout do relatório estiver definido.
+- **Novo exercício**: importe primeiro o **QDD** e depois o **Relatório Orçamentos
+  Temáticos**, no modo **Substituir exercício** — ele apaga e regrava só os anos presentes
+  no arquivo, deixando os demais intactos. A ordem importa: é o QDD que dá os nomes
+  canônicos de órgão e unidade e a dotação contra a qual a participação do OSG é calculada.
+  Importar antes dele não quebra nada, mas os registros ficam com os nomes como o relatório
+  os escreve, e o painel fica sem percentual e sem fontes de recurso até o QDD chegar.
+  Depois, acrescente o exercício a `EXERCICIOS_EM_APURACAO` enquanto a execução não fechar,
+  o PDF em `public/relatorios/` e o cartão em `RELATORIOS` (`src/lib/conteudo.ts`).
+- **Capa de um relatório novo**: o cartão de `#relatorios` mostra a primeira página do
+  PDF, não um ícone. Rode `python scripts/capas-relatorios.py` (precisa de
+  `python -m pip install pymupdf`) — ele rasteriza a página 1 de cada PDF de
+  `public/relatorios/` para `public/relatorios/capas/` — e aponte o campo `capa` do
+  registro para o PNG gerado. O campo é opcional: sem ele o cartão volta ao ícone
+  genérico, o que é o sintoma de capa não gerada.
+- **Colunas novas em `osg_registros`**: são quatro os lugares a tocar, e o quarto é fácil
+  de esquecer — `schema.ts`, `types.ts`, `db/mappers.ts` (ida e volta) e o `set:` do
+  `onConflictDoUpdate` em `src/app/api/registros/route.ts`, que enumera as colunas à mão.
+  Faltando a última, a coluna grava na inserção e some no upsert.
+- **Sem migrations**: o fluxo é `npm run db:push`. Colunas novas com `.notNull().default()`
+  entram sem quebrar as linhas já gravadas. `ponderador` e `planejado_entrega` são os dois
+  únicos nullable da tabela, e por significado: em ambos o vazio quer dizer alguma coisa
+  ("não pondera", "não discriminado") que um zero apagaria.
+- **Liquidado de 2026**: está no banco e é conferível na prévia da importação, mas não
+  aparece em nenhuma superfície de leitura. Ver *Exercícios em apuração*, acima.
 
 Fonte dos dados: DEPPO/SEPLAN — Comitê de Apuração do Orçamento Sensível ao Gênero (COSG).

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { credencialLocal } from "@/lib/auth/credenciais-locais";
 import { verifyPassword } from "@/lib/auth/password";
 import {
   MAX_AGE_SEC,
@@ -29,6 +30,26 @@ export async function POST(req: Request) {
   const senha = corpo.senha ?? "";
   if (!email || !senha) {
     return NextResponse.json({ erro: CREDENCIAIS_INVALIDAS }, { status: 401 });
+  }
+
+  /**
+   * Desenvolvimento sem Neon: a conta vem do `.env.local`. `credencialLocal`
+   * devolve `null` em produção e sempre que houver banco, então este trecho é
+   * inalcançável em qualquer ambiente que tenha DATABASE_URL. A resposta de
+   * falha é a mesma do caminho do banco, para não virar um oráculo que
+   * distingue e-mail errado de senha errada.
+   */
+  const local = credencialLocal();
+  if (local) {
+    if (email !== local.email || !verifyPassword(senha, local.senhaHash)) {
+      return NextResponse.json({ erro: CREDENCIAIS_INVALIDAS }, { status: 401 });
+    }
+    const token = signSession({ id: local.id, email: local.email, nome: local.nome });
+    const jar = await cookies();
+    jar.set(SESSION_COOKIE, token, sessionCookieOptions(MAX_AGE_SEC));
+    return NextResponse.json({
+      usuario: { id: local.id, email: local.email, nome: local.nome },
+    });
   }
 
   try {

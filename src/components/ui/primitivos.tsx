@@ -22,6 +22,19 @@ export function Card({
   );
 }
 
+/**
+ * Faixa central de todas as telas — site e painel.
+ *
+ * Mora num lugar só porque as faixas precisam concordar entre si: no painel a
+ * barra de filtros é sticky, e no site o cabeçalho é fixo sobre o hero. Qualquer
+ * divergência vira desalinho permanente durante a rolagem.
+ *
+ * **Alargar isto não basta sozinho.** Blocos de texto corrido precisam do próprio
+ * teto (`max-w-3xl` e afins), senão as linhas passam dos ~75 caracteres legíveis.
+ * Quem tem grade de cartões pode ocupar a faixa inteira.
+ */
+export const LARGURA_CONTEUDO = "mx-auto w-full max-w-[110rem] px-5 sm:px-8";
+
 export function Secao({
   id,
   className,
@@ -33,7 +46,7 @@ export function Secao({
 }) {
   return (
     <section id={id} className={cn("py-16 sm:py-24", className)}>
-      <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">{children}</div>
+      <div className={LARGURA_CONTEUDO}>{children}</div>
     </section>
   );
 }
@@ -43,12 +56,12 @@ export function TituloSecao({
   titulo,
   descricao,
 }: {
-  sobretitulo?: string;
+  sobretitulo?: React.ReactNode;
   titulo: string;
   descricao?: string;
 }) {
   return (
-    <header className="mb-10 max-w-3xl">
+    <header className="mb-10">
       {sobretitulo ? (
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-lilas">
           {sobretitulo}
@@ -57,6 +70,11 @@ export function TituloSecao({
       <h2 className="text-balance text-3xl font-semibold tracking-tight text-texto sm:text-4xl">
         {titulo}
       </h2>
+      {/* Sem teto de largura: o texto corre até a borda da faixa de conteúdo,
+          como o cabeçalho de seção do painel. As descrições daqui têm duas
+          frases no máximo, e o `max-w-3xl` de antes as quebrava no meio
+          deixando meia tela vazia à direita. Nada de `whitespace-nowrap` — em
+          tela estreita a quebra é bem-vinda. */}
       {descricao ? (
         <p className="mt-4 text-pretty text-base leading-relaxed text-texto-2">
           {descricao}

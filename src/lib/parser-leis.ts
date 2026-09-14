@@ -1,4 +1,5 @@
 import { hashId } from "./id";
+import { chaveLeiSemLink, LINK_RESERVA_POR_LEI } from "./referencias";
 import type { Lei, TipoLei } from "./types";
 import type { Aba } from "./xlsx-io";
 import { refCelula } from "./xlsx-io";
@@ -26,7 +27,7 @@ const ABAS: { nome: string; tipo: TipoLei; rotulo: string }[] = [
     rotulo: "Estrutura da administração",
   },
   { nome: "PPA", tipo: "ppa", rotulo: "Plano Plurianual" },
-  { nome: "LDO", tipo: "ldo", rotulo: "Diretrizes orçamentárias" },
+  { nome: "LDO", tipo: "ldo", rotulo: "Lei de diretrizes orçamentárias" },
   { nome: "LOA", tipo: "loa", rotulo: "Lei orçamentária anual" },
 ];
 
@@ -110,8 +111,14 @@ export function parseHistoricoLeis(abas: Aba[]): ResultadoLeis {
       if (!bruto) continue;
 
       const { numero, data, doe } = separarNumero(bruto);
-      // O link mora no hyperlink da célula B, não em uma coluna.
-      const url = aba.links.get(refCelula(i, 1)) ?? "";
+      // O link mora no hyperlink da célula B, não em uma coluna. Quando a célula
+      // ficou sem hyperlink, cai no mapa de reserva — a planilha sempre vence.
+      const daPlanilha = aba.links.get(refCelula(i, 1)) ?? "";
+      const url = daPlanilha
+        ? daPlanilha.replace(/^http:\/\/(www\.)?/, "https://")
+        : (LINK_RESERVA_POR_LEI.get(
+            chaveLeiSemLink(meta.tipo, numero, data)
+          ) ?? "");
       const orgao = [
         colOrgao >= 0 ? texto(linha[colOrgao]) : "",
         colNome >= 0 ? texto(linha[colNome]) : "",
@@ -128,8 +135,7 @@ export function parseHistoricoLeis(abas: Aba[]): ResultadoLeis {
         doe,
         ementa,
         orgao,
-        // Alguns links da planilha ainda apontam para http://www.legis...
-        url: url ? url.replace(/^http:\/\/(www\.)?/, "https://") : "",
+        url,
         sensivelGenero: colSensivel >= 0 ? texto(linha[colSensivel]) : "",
         citacoes: colCitacoes >= 0 ? texto(linha[colCitacoes]) : "",
         metas: colMetas >= 0 ? texto(linha[colMetas]) : "",

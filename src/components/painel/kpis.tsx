@@ -12,7 +12,7 @@ import {
   variacao,
 } from "@/lib/formato";
 import type { Totais } from "@/lib/types";
-import { Barra, Card } from "@/components/ui/primitivos";
+import { Card } from "@/components/ui/primitivos";
 
 /**
  * Cinco indicadores, todos derivados só das duas colunas que o painel exibe:
@@ -29,7 +29,10 @@ export function Kpis({
   anoAnterior: number | null;
 }) {
   const varAprop = anterior ? variacao(totais.aprop, anterior.aprop) : null;
-  const varLiq = anterior ? variacao(totais.liq, anterior.liq) : null;
+  const varLiq =
+    anterior && totais.liq !== null && anterior.liq !== null
+      ? variacao(totais.liq, anterior.liq)
+      : null;
   const varExec =
     anterior && anterior.execucao !== null && totais.execucao !== null
       ? totais.execucao - anterior.execucao
@@ -48,26 +51,36 @@ export function Kpis({
             : "Planejado no exercício"
         }
       />
+      {/*
+        Em exercício de execução ainda aberta os dois cartões continuam na tela,
+        vazios e com a nota que explica por quê. Retirá-los mudaria a grade de
+        cinco para três colunas e faria o painel de 2026 parecer um painel
+        diferente do de 2025 — quem compara exercícios precisa reconhecer a mesma
+        tela, com a informação que falta assinalada em vez de ausente.
+      */}
       <Kpi
         icone={Receipt}
         rotulo="Liquidado OSG"
-        valor={moedaCurta(totais.liq)}
-        titulo={moeda(totais.liq)}
+        valor={totais.liq !== null ? moedaCurta(totais.liq) : "—"}
+        titulo={totais.liq !== null ? moeda(totais.liq) : undefined}
         nota={
-          varLiq !== null && anoAnterior
-            ? `${sinal(varLiq)}${percentual(varLiq)} sobre ${anoAnterior}`
-            : "Executado no exercício"
+          totais.emApuracao
+            ? "Exercício em apuração"
+            : varLiq !== null && anoAnterior
+              ? `${sinal(varLiq)}${percentual(varLiq)} sobre ${anoAnterior}`
+              : "Executado no exercício"
         }
       />
       <Kpi
         icone={TrendingUp}
         rotulo="Execução"
         valor={totais.execucao !== null ? percentual(totais.execucao) : "—"}
-        progresso={totais.execucao}
         nota={
-          varExec !== null && anoAnterior
-            ? `${pontosPercentuais(varExec)} sobre ${anoAnterior}`
-            : "Liquidado sobre o planejado"
+          totais.emApuracao
+            ? "Exercício em apuração"
+            : varExec !== null && anoAnterior
+              ? `${pontosPercentuais(varExec)} sobre ${anoAnterior}`
+              : "Liquidado sobre o planejado"
         }
       />
       <Kpi
@@ -80,7 +93,7 @@ export function Kpis({
         icone={Building2}
         rotulo="Órgãos executores"
         valor={inteiro(totais.orgaos)}
-        nota="Unidades com valor planejado no OSG"
+        nota={`${inteiro(totais.unidades)} unidades orçamentárias`}
       />
     </div>
   );
@@ -92,14 +105,12 @@ function Kpi({
   valor,
   titulo,
   nota,
-  progresso,
 }: {
   icone: LucideIcon;
   rotulo: string;
   valor: string;
   titulo?: string;
   nota?: string;
-  progresso?: number | null;
 }) {
   return (
     <Card className="relative overflow-hidden p-4">
@@ -113,13 +124,6 @@ function Kpi({
       <p className="tabular mt-1.5 text-2xl font-semibold text-texto" title={titulo}>
         {valor}
       </p>
-      {progresso !== undefined && progresso !== null ? (
-        <Barra
-          valor={progresso}
-          cor={progresso >= 70 ? "var(--bom)" : progresso >= 40 ? "var(--alerta)" : "var(--critico)"}
-          className="mt-3"
-        />
-      ) : null}
       {nota ? <p className="mt-2 text-xs text-texto-3">{nota}</p> : null}
     </Card>
   );

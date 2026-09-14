@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { lerQdd, lerRegistros } from "@/lib/dados";
+import { lerLeis, lerQdd, lerRegistros } from "@/lib/dados";
 import type { DotacaoQdd } from "@/lib/types";
 import { Painel } from "@/components/painel/painel";
 
@@ -12,29 +12,48 @@ export const metadata: Metadata = {
 };
 
 /**
- * O QDD tem o orçamento inteiro do estado (~1.350 dotações por exercício), mas
- * o painel só precisa das dotações que o OSG referencia — algumas centenas.
- * Filtrar aqui evita mandar o quadro completo para o navegador.
+ * O QDD tem o orçamento inteiro do estado (de 6 a 9 mil linhas por exercício), mas
+ * o painel só precisa das que o OSG referencia.
+ *
+ * São dois filtros em série, e cada um resolve uma coisa. O `lerQdd(projetos)`
+ * corta no SQL, para o Neon não mandar a tabela inteira pela rede. Este aqui
+ * corta o que sobrou pelo órgão, que o SQL não tem como saber — a chave do OSG
+ * é (ano, órgão, projeto) e uma mesma ação orçamentária aparece em órgãos
+ * diferentes.
  */
 function recortarQdd(qdd: DotacaoQdd[], chaves: Set<string>): DotacaoQdd[] {
   return qdd.filter(
     (d) =>
+      chaves.has(
+        `${d.ano}|${d.orgaoCodigo}/${d.unidadeCodigo}|${d.projetoAtividade}`
+      ) ||
       chaves.has(`${d.ano}|${d.orgaoCodigo}|${d.projetoAtividade}`) ||
       chaves.has(`${d.ano}|*|${d.projetoAtividade}`)
   );
 }
 
 export default async function PaginaPainel() {
-  const [{ registros }, { qdd }] = await Promise.all([lerRegistros(), lerQdd()]);
+  // As leis alimentam a seção "Instrumentos Legais" da barra lateral.
+  const [{ registros }, { leis }] = await Promise.all([lerRegistros(), lerLeis()]);
 
-  // Duas chaves porque a junção tem um recuo por projeto/atividade, para as
-  // ações compartilhadas entre órgãos.
+  // O QDD depende dos registros: só faz sentido buscar as ações orçamentárias
+  // que o OSG cita. Custa o paralelismo de uma consulta e economiza uns 8 MB de
+  // tráfego com o banco a cada visita.
+  const projetos = [...new Set(registros.map((r) => r.projetoAtividade).filter(Boolean))];
+  const { qdd } = await lerQdd(projetos);
+
+  // Três chaves, uma por nível de casamento de `linhasDoQdd`: unidade, órgão e
+  // projeto. O recorte precisa trazer tudo que qualquer um dos três alcança.
   const chaves = new Set<string>();
   for (const r of registros) {
-    const orgao = r.orgaoCodigo.match(/^\d+/)?.[0] ?? "";
-    chaves.add(`${r.ano}|${orgao}|${r.projetoAtividade}`);
+    chaves.add(
+      `${r.ano}|${r.orgaoCodigo}/${r.unidadeCodigo}|${r.projetoAtividade}`
+    );
+    chaves.add(`${r.ano}|${r.orgaoCodigo}|${r.projetoAtividade}`);
     chaves.add(`${r.ano}|*|${r.projetoAtividade}`);
   }
 
-  return <Painel registros={registros} qdd={recortarQdd(qdd, chaves)} />;
+  return (
+    <Painel registros={registros} qdd={recortarQdd(qdd, chaves)} leis={leis} />
+  );
 }

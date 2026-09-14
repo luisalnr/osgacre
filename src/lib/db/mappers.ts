@@ -1,3 +1,5 @@
+import { limparNome } from "../orgaos";
+import { ponderadorDe } from "../referencias";
 import type { DotacaoQdd, Lei, Registro, TipoLei } from "../types";
 import type {
   LeiInsert,
@@ -17,14 +19,37 @@ const num = (v: string | number | null | undefined): number => {
 /** Duas casas, para não gravar dízimas do ponto flutuante no banco. */
 const dec = (v: number): string => (Number.isFinite(v) ? v : 0).toFixed(2);
 
+/**
+ * Como `num`/`dec`, mas preservando o nulo.
+ *
+ * `ponderador` e `planejado_entrega` são nulos por significado — "não pondera" e
+ * "não discriminado" —, e passá-los pelo `num()` os transformaria em zero, que
+ * quer dizer outra coisa: apropriação nula. São os únicos dois campos numéricos
+ * da tabela em que a distinção existe.
+ */
+const numOuNulo = (v: string | number | null | undefined): number | null => {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+const decOuNulo = (v: number | null | undefined): string | null =>
+  v === null || v === undefined || !Number.isFinite(v) ? null : v.toFixed(2);
+
 export function rowToRegistro(row: RegistroRow): Registro {
   return {
     id: row.id,
     ano: row.ano,
     categoria: row.categoria,
     orgaoCodigo: row.orgaoCodigo,
-    orgaoNome: row.orgaoNome,
-    orgaoSigla: row.orgaoSigla,
+    // `limparNome` na leitura, e não só na importação: as linhas gravadas antes
+    // de a limpeza existir continuam no banco com o nome como o QDD o escreveu,
+    // e sem isto o painel e os relatórios mostrariam duas grafias do mesmo órgão
+    // conforme a data da carga. Normalizar aqui faz a correção valer na hora,
+    // sem depender de reimportar o QDD. São 185 linhas, custo irrelevante.
+    orgaoNome: limparNome(row.orgaoNome),
+    unidadeCodigo: row.unidadeCodigo,
+    unidadeNome: limparNome(row.unidadeNome),
     aplicacaoProgramada: row.aplicacaoProgramada,
     projetoAtividade: row.projetoAtividade,
     funcaoCodigo: row.funcaoCodigo,
@@ -40,6 +65,23 @@ export function rowToRegistro(row: RegistroRow): Registro {
     orcAprovadoProjeto: num(row.orcAprovadoProjeto),
     orcFinalProjeto: num(row.orcFinalProjeto),
     liqProjetoTotal: num(row.liqProjetoTotal),
+    tema: row.tema,
+    ciclo: row.ciclo,
+    // O ponderador é derivável da categoria e a fonte o informa explicitamente.
+    // Grava-se o que a fonte diz; o `ponderadorDe` entra como recuo para as
+    // linhas de 2024/2025, que vêm de uma planilha sem a coluna. A importação
+    // avisa quando os dois discordam, que é o caso em que a metodologia mudou.
+    ponderador: numOuNulo(row.ponderador) ?? ponderadorDe(row.categoria),
+    planejadoDotacao: num(row.planejadoDotacao),
+    planejadoOrigem:
+      row.planejadoOrigem === "dotacao-atualizada" ? "dotacao-atualizada" : "relatorio",
+    planejadoEntrega: numOuNulo(row.planejadoEntrega),
+    liqDotacao: num(row.liqDotacao),
+    funcaoProgramatica: row.funcaoProgramatica,
+    entregaDescricao: row.entregaDescricao,
+    quantidade: num(row.quantidade),
+    municipio: row.municipio,
+    publicoBeneficiado: row.publicoBeneficiado,
   };
 }
 
@@ -50,7 +92,8 @@ export function registroToInsert(r: Registro): RegistroInsert {
     categoria: r.categoria,
     orgaoCodigo: r.orgaoCodigo,
     orgaoNome: r.orgaoNome,
-    orgaoSigla: r.orgaoSigla,
+    unidadeCodigo: r.unidadeCodigo,
+    unidadeNome: r.unidadeNome,
     aplicacaoProgramada: r.aplicacaoProgramada,
     projetoAtividade: r.projetoAtividade,
     funcaoCodigo: r.funcaoCodigo,
@@ -66,6 +109,18 @@ export function registroToInsert(r: Registro): RegistroInsert {
     orcAprovadoProjeto: dec(r.orcAprovadoProjeto),
     orcFinalProjeto: dec(r.orcFinalProjeto),
     liqProjetoTotal: dec(r.liqProjetoTotal),
+    tema: r.tema,
+    ciclo: r.ciclo,
+    ponderador: decOuNulo(r.ponderador),
+    planejadoDotacao: dec(r.planejadoDotacao),
+    planejadoOrigem: r.planejadoOrigem,
+    planejadoEntrega: decOuNulo(r.planejadoEntrega),
+    liqDotacao: dec(r.liqDotacao),
+    funcaoProgramatica: r.funcaoProgramatica,
+    entregaDescricao: r.entregaDescricao,
+    quantidade: dec(r.quantidade),
+    municipio: r.municipio,
+    publicoBeneficiado: r.publicoBeneficiado,
   };
 }
 
@@ -76,12 +131,20 @@ export function rowToQdd(row: QddRow): DotacaoQdd {
     id: row.id,
     ano: row.ano,
     orgaoCodigo: row.orgaoCodigo,
-    orgaoNome: row.orgaoNome,
+    // `limparNome` na leitura, e não só na importação: as linhas gravadas antes
+    // de a limpeza existir continuam no banco com o nome como o QDD o escreveu,
+    // e sem isto o painel e os relatórios mostrariam duas grafias do mesmo órgão
+    // conforme a data da carga. Normalizar aqui faz a correção valer na hora,
+    // sem depender de reimportar o QDD. São 185 linhas, custo irrelevante.
+    orgaoNome: limparNome(row.orgaoNome),
     unidadeCodigo: row.unidadeCodigo,
-    unidadeNome: row.unidadeNome,
+    unidadeNome: limparNome(row.unidadeNome),
     projetoAtividade: row.projetoAtividade,
     aplicacaoProgramada: row.aplicacaoProgramada,
     funcaoProgramatica: row.funcaoProgramatica,
+    fonte: row.fonte,
+    contaDespesa: row.contaDespesa,
+    descricaoDespesa: row.descricaoDespesa,
     dotacaoInicial: num(row.dotacaoInicial),
     suplementado: num(row.suplementado),
     dotacaoAtualizada: num(row.dotacaoAtualizada),
@@ -103,6 +166,9 @@ export function qddToInsert(d: DotacaoQdd): QddInsert {
     projetoAtividade: d.projetoAtividade,
     aplicacaoProgramada: d.aplicacaoProgramada,
     funcaoProgramatica: d.funcaoProgramatica,
+    fonte: d.fonte,
+    contaDespesa: d.contaDespesa,
+    descricaoDespesa: d.descricaoDespesa,
     dotacaoInicial: dec(d.dotacaoInicial),
     suplementado: dec(d.suplementado),
     dotacaoAtualizada: dec(d.dotacaoAtualizada),

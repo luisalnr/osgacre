@@ -1,0 +1,1243 @@
+{
+  "consultadoEm": "2026-09-08",
+  "fontes": {
+    "brasil": "https://odsbrasil.gov.br/relatorio/sintese",
+    "onuGenero": "https://unstats.un.org/unsd/demographic-social/gender/documents/Gender%2080SDG%20Indicator%20Framework_2019.pdf"
+  },
+  "objetivos": [
+    {
+      "numero": 1,
+      "titulo": "Erradicação da pobreza",
+      "cor": "#e5243b",
+      "indicadores": [
+        {
+          "codigo": "1.1.1",
+          "nome": "Proporção da população vivendo abaixo da linha de pobreza internacional, por sexo, idade, condição perante o trabalho e localização geográfica (urbano/rural)",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo1/indicador111"
+        },
+        {
+          "codigo": "1.2.1",
+          "nome": "Proporção da população vivendo abaixo da linha de pobreza nacional, por sexo, idade, condição perante o trabalho e localização geográfica (urbano/rural).",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo1/indicador121"
+        },
+        {
+          "codigo": "1.2.2",
+          "nome": "Proporção de homens, mulheres e crianças de todas as idades vivendo na pobreza em todas as dimensões de acordo com as definições nacionais",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo1/indicador122"
+        },
+        {
+          "codigo": "1.3.1",
+          "nome": "Proporção da população abrangida por regimes de proteção social, por sexo e para os seguintes grupos populacionais: crianças, população desempregada, população idosa, população com deficiência, mulheres grávidas, crianças recém-nascidas, pessoas que sofreram acidentes de trabalho, população em risco de pobreza e outros grupos populacionais vulneráveis",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ]
+        },
+        {
+          "codigo": "1.4.2",
+          "nome": "Proporção da população adulta total com direitos de posse da terra garantidos, com documentação legalmente reconhecida e que percebe os seus direitos à terra como seguros, por sexo e por tipo de posse",
+          "status": "sem-dados",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "1.5.1",
+          "nome": "Número de mortes, pessoas desaparecidas e pessoas diretamente afetadas atribuído a desastres por 100 mil habitantes",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo1/indicador151"
+        },
+        {
+          "codigo": "1.b.1",
+          "nome": "Gastos sociais públicos em favor dos pobres",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "economico",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "P1.1.1",
+          "nome": "Porcentagem da população que vive abaixo da linha  de pobreza extrema  regional, desagregado por sexo, idade, condição de atividade, localização geográfica (urbana ou rural) e etnia",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo1/indicadorP111"
+        }
+      ]
+    },
+    {
+      "numero": 2,
+      "titulo": "Fome zero e agricultura sustentável",
+      "cor": "#dda63a",
+      "indicadores": [
+        {
+          "codigo": "2.1.2",
+          "nome": "Prevalência de insegurança alimentar moderada ou grave, baseada em escala de insegurança alimentar",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo2/indicador212"
+        },
+        {
+          "codigo": "2.2.1",
+          "nome": "Prevalência de atrasos no crescimento nas crianças com menos de 5 anos de idade",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo2/indicador221"
+        },
+        {
+          "codigo": "2.2.2",
+          "nome": "Prevalência de malnutrição nas crianças com menos de 5 anos de idade, por tipo de malnutrição (baixo peso e excesso de peso)",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo2/indicador222"
+        },
+        {
+          "codigo": "2.2.3",
+          "nome": "Prevalência de anemia em mulheres de 15 a 49 anos, segundo estado de gravidez",
+          "status": "sem-dados",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "2.2.4",
+          "nome": "Prevalência do limiar mínimo de diversidade alimentar, por grupo populacional (crianças de 6 a 23,9 meses e mulheres não grávidas de 15 a 49 anos)",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "2.3.2",
+          "nome": "Renda média dos pequenos produtores de alimentos, por sexo e condição de indígena",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo2/indicador232"
+        }
+      ]
+    },
+    {
+      "numero": 3,
+      "titulo": "Saúde e bem-estar",
+      "cor": "#4c9f38",
+      "indicadores": [
+        {
+          "codigo": "3.1.1",
+          "nome": "Razão de mortalidade materna",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador311"
+        },
+        {
+          "codigo": "3.1.2",
+          "nome": "Proporção de nascimentos assistidos por pessoal de saúde qualificado",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador312"
+        },
+        {
+          "codigo": "3.2.1",
+          "nome": "Taxa de mortalidade em menores de 5 anos",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador321"
+        },
+        {
+          "codigo": "3.3.1",
+          "nome": "Número de novas infecções por HIV por 1 000 habitantes, por sexo, idade e populações específicas",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "3.4.1",
+          "nome": "Taxa de mortalidade por doenças do aparelho circulatório, tumores malignos, diabetes mellitus e doenças crônicas respiratórias",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador341"
+        },
+        {
+          "codigo": "3.4.2",
+          "nome": "Taxa de mortalidade por suicídio",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador342"
+        },
+        {
+          "codigo": "3.5.2",
+          "nome": "Consumo de álcool em litros de álcool puro per capita (com 15 anos ou mais) por ano",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador352"
+        },
+        {
+          "codigo": "3.6.1",
+          "nome": "Taxa de mortalidade por acidentes de trânsito",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador361"
+        },
+        {
+          "codigo": "3.7.1",
+          "nome": "Proporção de mulheres em idade reprodutiva (15 a 49 anos) que utilizam métodos modernos de planejamento familiar",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "3.7.2",
+          "nome": "Número de nascidos vivos de mães adolescentes (grupos etários 10-14 e 15-19) por 1 000 mulheres destes grupos etários",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador372"
+        },
+        {
+          "codigo": "3.8.1",
+          "nome": "Cobertura de serviços essenciais de saúde",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "3.8.2",
+          "nome": "Proporção de pessoas em famílias com grandes gastos em saúde em relação ao total de despesas familiares",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador382"
+        },
+        {
+          "codigo": "3.9.1",
+          "nome": "Taxa de mortalidade por poluição ambiental (externa e doméstica) do ar",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador391"
+        },
+        {
+          "codigo": "3.9.2",
+          "nome": "Taxa de mortalidade atribuída a fontes de água inseguras, saneamento inseguro e falta de higiene",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador392"
+        },
+        {
+          "codigo": "3.a.1",
+          "nome": "Prevalência do consumo atual de tabaco na população de 15 anos ou mais",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo3/indicador3a1"
+        },
+        {
+          "codigo": "3.b.1",
+          "nome": "Taxa de cobertura vacinal da população em relação às vacinas incluídas no Programa Nacional de Vacinação",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "3.b.1d",
+          "nome": "Proporção da população-alvo que recebeu a dose final da vacina contra o papilomavírus humano (HPV)",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 4,
+      "titulo": "Educação de qualidade",
+      "cor": "#c5192d",
+      "indicadores": [
+        {
+          "codigo": "4.1.1",
+          "nome": "Proporção de crianças e jovens: (a) nos segundo e terceiro anos do ensino fundamental; (b) no final dos anos iniciais do ensino fundamental; e c) no final dos anos finais do ensino fundamental, que atingiram um nível mínimo de proficiência em (i) leitura e (ii) matemática, por sexo",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "4.2.1",
+          "nome": "Proporção de crianças com idade entre 24-59 meses que estão com desenvolvimento adequado da saúde, aprendizagem e bem-estar psicossocial, por sexo",
+          "status": "sem-dados",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "4.2.2",
+          "nome": "Taxa de participação no ensino organizado (um ano antes da idade oficial de ingresso no ensino fundamental), por sexo",
+          "status": "produzido",
+          "eixos": [
+            "educacao"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo4/indicador422"
+        },
+        {
+          "codigo": "4.3.1",
+          "nome": "Taxa de participação de jovens e adultos na educação formal e não formal, nos últimos 12 meses, por sexo",
+          "status": "sem-dados",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "4.4.1",
+          "nome": "Proporção de jovens e adultos com habilidades em tecnologias de informação e comunicação (TIC), por tipo de habilidade",
+          "status": "sem-dados",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "4.5.1",
+          "nome": "Índices de paridade (mulher/homem, rural/urbano, 1º/5º quintis de renda e outros como população com deficiência, populações indígenas e populações afetadas por conflitos, à medida que os dados estejam disponíveis) para todos os indicadores nesta lista que possam ser desagregados",
+          "status": "produzido",
+          "eixos": [
+            "educacao"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo4/indicador451"
+        },
+        {
+          "codigo": "4.6.1",
+          "nome": "Taxa de Alfabetização de Jovens/Adultos",
+          "status": "produzido",
+          "eixos": [
+            "educacao"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo4/indicador461"
+        },
+        {
+          "codigo": "4.7.1",
+          "nome": "Grau em que a (i) a educação para a cidadania global e (ii) a educação para o desenvolvimento sustentável são integradas nas (a) políticas nacionais de educação; (b) currículos escolares; (c) formação de professores; e (d) avaliação de estudantes",
+          "status": "em-analise",
+          "eixos": [
+            "educacao",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "4.a.1",
+          "nome": "Proporção de escolas com acesso a: (a) eletricidade; (b) internet para fins pedagógicos; (c) computadores para fins pedagógicos; (d) infraestrutura e materiais adaptados para alunos com deficiência; (e) água potável; (f) instalações sanitárias separadas por sexo; e (g) instalações básicas para lavagem das mãos (de acordo com as definições dos indicadores WASH)",
+          "status": "produzido",
+          "eixos": [
+            "educacao"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo4/indicador4a1"
+        }
+      ]
+    },
+    {
+      "numero": 5,
+      "titulo": "Igualdade de gênero",
+      "cor": "#ff3a21",
+      "indicadores": [
+        {
+          "codigo": "5.1.1",
+          "nome": "Existência ou não de arcabouço legal em vigor para promover, reforçar e monitorar a igualdade e a não-discriminação com base no sexo",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "5.2.1",
+          "nome": "Proporção de mulheres e meninas de 15 anos de idade ou mais que sofreram violência física, sexual ou psicológica, por parte de um parceiro íntimo atual ou anterior, nos últimos 12 meses, por forma de violência e por idade",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "5.2.2",
+          "nome": "Proporção de mulheres e meninas de 15 anos ou mais que sofreram violência sexual por outras pessoas não parceiras íntimas, nos últimos 12 meses, por idade e local de ocorrência",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "5.3.1",
+          "nome": "Proporção de mulheres com idade de 20 a 24 anos que casaram ou viveram em união de fato antes dos 15 anos e antes dos 18 anos de idade",
+          "status": "sem-dados",
+          "eixos": [
+            "assistencia-social",
+            "saude",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "5.3.2",
+          "nome": "Proporção de meninas e mulheres com idade entre 15 e 49 anos que foram submetidas a mutilação genital feminina, por grupo etário",
+          "status": "nao-se-aplica",
+          "eixos": [
+            "assistencia-social",
+            "saude",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "5.4.1",
+          "nome": "Proporção de tempo gasto em trabalho doméstico não remunerado e cuidados, por sexo, idade e localização",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo5/indicador541"
+        },
+        {
+          "codigo": "5.5.1",
+          "nome": "Proporção de assentos ocupados por mulheres em (a) parlamentos nacionais e (b) governos locais",
+          "status": "produzido",
+          "eixos": [
+            "governanca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo5/indicador551"
+        },
+        {
+          "codigo": "5.5.2",
+          "nome": "Proporção de mulheres em posições gerenciais",
+          "status": "produzido",
+          "eixos": [
+            "economico",
+            "governanca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo5/indicador552"
+        },
+        {
+          "codigo": "5.6.1",
+          "nome": "Proporção de mulheres com idade entre 15 e 49 anos que tomam decisões informadas sobre suas relações sexuais, uso de contraceptivos e cuidados com saúde reprodutiva",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "5.6.2",
+          "nome": "Número de países com legislação e regulamentação que garantam o acesso pleno e igualitário de mulheres e homens, com 15 anos ou mais de idade, aos cuidados, informação e educação em saúde sexual e reprodutiva",
+          "status": "sem-dados",
+          "eixos": [
+            "saude",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "5.a.1",
+          "nome": "(a) Proporção da população agrícola total com propriedade ou direitos assegurados sobre terras agrícolas, por sexo; e (b) proporção de mulheres entre proprietários e detentores de direitos sobre terras agrícolas, por tipo de posse",
+          "status": "sem-dados",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "5.a.2",
+          "nome": "Proporção de países onde as estruturas legais (incluindo o direito consuetudinário) garantem às mulheres direitos iguais à propriedade e / ou controle da terra",
+          "status": "sem-dados",
+          "eixos": [
+            "economico",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "5.b.1",
+          "nome": "Proporção de pessoas que possuem telefone celular móvel, por sexo",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo5/indicador5b1"
+        },
+        {
+          "codigo": "5.c.1",
+          "nome": "Proporção de países com sistemas para monitorar e fazer alocações públicas para a igualdade de gênero e o empoderamento das mulheres",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 6,
+      "titulo": "Água potável e saneamento",
+      "cor": "#26bde2",
+      "indicadores": [
+        {
+          "codigo": "6.2.1",
+          "nome": "Proporção da população que utiliza (a) serviços de saneamento gerenciados de forma segura e (b) instalações para lavagem das mãos com água e sabão",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo6/indicador621"
+        }
+      ]
+    },
+    {
+      "numero": 7,
+      "titulo": "Energia limpa e acessível",
+      "cor": "#fcc30b",
+      "indicadores": [
+        {
+          "codigo": "7.1.2",
+          "nome": "Percentagem da população com acesso primário a combustíveis e tecnologias limpos",
+          "status": "produzido",
+          "eixos": [
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo7/indicador712"
+        }
+      ]
+    },
+    {
+      "numero": 8,
+      "titulo": "Trabalho decente e crescimento econômico",
+      "cor": "#a21942",
+      "indicadores": [
+        {
+          "codigo": "8.3.1",
+          "nome": "Taxa de informalidade das pessoas de 15 anos ou mais de idade ocupadas na semana de referência, por sexo, setor de atividade do trabalho principal e existência de deficiência",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador831"
+        },
+        {
+          "codigo": "8.5.1",
+          "nome": "Rendimento médio por hora real das pessoas de 15 anos ou mais de idade ocupadas na semana de referência com rendimento de trabalho, habitualmente recebido em todos os trabalhos, por sexo, grupo de idade, grupamento ocupacional do trabalho principal e existência de deficiência",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador851"
+        },
+        {
+          "codigo": "8.5.2",
+          "nome": "Taxa de desocupação, por sexo, grupo de idade e existência de deficiência",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador852"
+        },
+        {
+          "codigo": "8.6.1",
+          "nome": "Percentual de pessoas de 15 a 24 anos não ocupadas, não estudantes e que não estão em treinamento para um trabalho",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador861"
+        },
+        {
+          "codigo": "8.7.1",
+          "nome": "Proporção e número de crianças de 5-17 anos envolvidos no trabalho infantil, por sexo e idade",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador871"
+        },
+        {
+          "codigo": "8.8.1",
+          "nome": "Taxas de frequência de lesões ocupacionais fatais e não fatais, por sexo e situação de migração",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "8.8.2",
+          "nome": "Nível de conformidade nacional dos direitos trabalhistas (liberdade de associação e negociação coletiva) com base em fontes textuais da Organização Internacional do Trabalho (OIT) e legislação nacional, por sexo e situação de migração",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "8.9.2",
+          "nome": "Pessoas empregadas no setor do turismo",
+          "status": "sem-dados",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "8.10.2",
+          "nome": "Proporção de adultos (15 ou mais anos) com uma conta num banco ou em outra instituição financeira ou com um serviço móvel de dinheiro",
+          "status": "produzido",
+          "eixos": [
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo8/indicador8102"
+        }
+      ]
+    },
+    {
+      "numero": 9,
+      "titulo": "Indústria, inovação e infraestrutura",
+      "cor": "#fd6925",
+      "indicadores": [
+        {
+          "codigo": "9.5.2",
+          "nome": "Pesquisadores (em equivalência de tempo integral) por milhão de habitantes",
+          "status": "produzido",
+          "eixos": [
+            "educacao",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo9/indicador952"
+        }
+      ]
+    },
+    {
+      "numero": 10,
+      "titulo": "Redução das desigualdades",
+      "cor": "#dd1367",
+      "indicadores": [
+        {
+          "codigo": "10.2.1",
+          "nome": "Proporção da pessoas vivendo abaixo de 50% da mediana da renda, por sexo, idade e pessoas com deficiência",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo10/indicador1021"
+        },
+        {
+          "codigo": "10.3.1",
+          "nome": "Proporção da população que reportou ter-se sentido pessoalmente discriminada ou assediada nos últimos 12 meses por motivos de discriminação proibidos no âmbito da legislação internacional dos direitos humanos",
+          "status": "sem-dados",
+          "eixos": [
+            "assistencia-social",
+            "governanca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 11,
+      "titulo": "Cidades e comunidades sustentáveis",
+      "cor": "#fd9d24",
+      "indicadores": [
+        {
+          "codigo": "11.2.1",
+          "nome": "Proporção de população que tem acesso adequado a transporte público, por sexo, idade e pessoas com deficiência",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "11.5.1",
+          "nome": "Número de mortes, pessoas desaparecidas e pessoas diretamente afetadas atribuído a desastres por 100 mil habitantes",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo11/indicador1151"
+        },
+        {
+          "codigo": "11.7.1",
+          "nome": "Proporção da área construída cidades que é espaço público aberto para uso de todos, por sexo, idade e pessoas com deficiência",
+          "status": "sem-dados",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "11.7.2",
+          "nome": "Proporção da população vítima de assédio físico ou sexual, por sexo, grupo etário, pessoas com deficiência e local da ocorrência, nos últimos 12 meses",
+          "status": "sem-dados",
+          "eixos": [
+            "seguranca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 12,
+      "titulo": "Consumo e produção responsáveis",
+      "cor": "#bf8b2e",
+      "indicadores": []
+    },
+    {
+      "numero": 13,
+      "titulo": "Ação contra a mudança global do clima",
+      "cor": "#3f7e44",
+      "indicadores": [
+        {
+          "codigo": "13.1.1",
+          "nome": "Número de mortes, pessoas desaparecidas e pessoas diretamente afetadas atribuído a desastres por 100 mil habitantes",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "saude"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo13/indicador1311"
+        },
+        {
+          "codigo": "13.b.1",
+          "nome": "Número de países menos desenvolvidos e pequenos Estados insulares em desenvolvimento com Contribuições Nacionalmente Determinadas, estratégias de longo prazo, planos nacionais de adaptação, estratégias como reportadas nas comunicações nacionais e de adaptação",
+          "status": "nao-se-aplica",
+          "eixos": [
+            "governanca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 14,
+      "titulo": "Vida na água",
+      "cor": "#0a97d9",
+      "indicadores": []
+    },
+    {
+      "numero": 15,
+      "titulo": "Vida terrestre",
+      "cor": "#56c02b",
+      "indicadores": []
+    },
+    {
+      "numero": 16,
+      "titulo": "Paz, justiça e instituições eficazes",
+      "cor": "#00689d",
+      "indicadores": [
+        {
+          "codigo": "16.1.1",
+          "nome": "Número de vítimas de homicídio intencional, por 100 000 habitantes, por sexo e idade",
+          "status": "produzido",
+          "eixos": [
+            "seguranca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo16/indicador1611"
+        },
+        {
+          "codigo": "16.1.2",
+          "nome": "Óbitos relacionados com conflitos por 100 000 habitantes, por sexo, idade e causa",
+          "status": "nao-se-aplica",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "16.1.3",
+          "nome": "Proporção da população sujeita a violência física, psicológica ou sexual nos últimos 12 meses",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo16/indicador1613"
+        },
+        {
+          "codigo": "16.2.2",
+          "nome": "Número de vítimas de tráfico de pessoas por 100 000 habitantes, por sexo, idade e forma de exploração",
+          "status": "sem-dados",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "16.2.3",
+          "nome": "Proporção de mulheres e homens jovens com idade entre 18 e 29 anos que foram vítimas de violência sexual até a idade de 18 anos",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "16.3.1",
+          "nome": "Proporção de vítimas de violência nos últimos 12 meses que reportaram às autoridades competentes ou a outros organismos de resolução de conflitos oficialmente reconhecidos",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo16/indicador1631"
+        },
+        {
+          "codigo": "16.5.1",
+          "nome": "Proporção de pessoas que tiveram pelo menos um contato com um funcionário público e que pagaram um suborno ou a quem foi pedido um suborno por funcionários públicos, nos últimos 12 meses",
+          "status": "sem-dados",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "16.7.1",
+          "nome": "Proporções de cargos (por sexo, idade, pessoas com deficiência e grupos populacionais) em instituições públicas (legislativo nacional e locais, administração pública e tribunais) em relação às distribuições nacionais",
+          "status": "produzido",
+          "eixos": [
+            "governanca"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo16/indicador1671"
+        },
+        {
+          "codigo": "16.7.2",
+          "nome": "Proporção da população que considera que os processos de tomada de decisão são inclusivos e adequados, por sexo, idade, deficiência e grupo populacional",
+          "status": "sem-dados",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "16.9.1",
+          "nome": "Proporção de crianças com menos de 5 anos cujos nascimentos foram registrados por uma autoridade civil, por idade",
+          "status": "produzido",
+          "eixos": [
+            "assistencia-social"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo16/indicador1691"
+        },
+        {
+          "codigo": "16.b.1",
+          "nome": "Proporção da população que reportou ter-se sentido pessoalmente discriminada ou assediada nos últimos 12 meses por motivos de discriminação proibidos no âmbito da legislação internacional dos direitos humanos",
+          "status": "sem-dados",
+          "eixos": [
+            "assistencia-social",
+            "governanca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 17,
+      "titulo": "Parcerias e meios de implementação",
+      "cor": "#19486a",
+      "indicadores": [
+        {
+          "codigo": "17.8.1",
+          "nome": "Proporção de indivíduos que utilizam a Internet",
+          "status": "produzido",
+          "eixos": [
+            "educacao",
+            "economico"
+          ],
+          "url": "https://odsbrasil.gov.br/objetivo17/indicador1781"
+        },
+        {
+          "codigo": "17.18.1",
+          "nome": "Indicador de capacidade estatística para monitoramento dos Objetivos do Desenvolvimento Sustentável",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        }
+      ]
+    },
+    {
+      "numero": 18,
+      "titulo": "Igualdade étnico-racial",
+      "cor": "#8a3715",
+      "indicadores": [
+        {
+          "codigo": "18.1.1",
+          "nome": "Nível de ocupação das pessoas com 14 anos ou mais de idade, por cor ou raça, etnia, sexo, grupos de idade e localização geográfica",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.1.2",
+          "nome": "Taxa de informalidade das pessoas de 14 anos ou mais de idade ocupadas na semana de referência, por cor ou raça, sexo, setor de atividade do trabalho principal e existência de deficiência",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.1.3",
+          "nome": "Rendimento médio habitual do trabalho principal, por cor ou raça, etnia, sexo e território, por grupamento ocupacional e nível de escolaridade",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.1.4",
+          "nome": "Razão de rendimento médio habitual do trabalho principal por cor ou raça, etnia, sexo e território, por grupamento ocupacional e nível de escolaridade",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.1.5",
+          "nome": "Número médio Média de horas semanais dedicadas pelas pessoas de 14 anos ou mais de idade aos afazeres domésticos e/ou às tarefas de cuidado de pessoas, por cor ou raça, sexo, grupos de idade e localização",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.2.1",
+          "nome": "Taxa de vítimas de homicídio intencional, por 100 000 habitantes, por sexo, idade e cor/raça",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.2",
+          "nome": "Proporção da população por sexo e cor/raça sujeita a violência física, psicológica ou sexual nos últimos 12 meses",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.3",
+          "nome": "Número de óbitos decorrentes de intervenções policiais por sexo, faixa etária e cor/raça",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.4",
+          "nome": "Taxa de homicídios de mulheres e meninas dentro e fora das residências por raça/cor",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.5",
+          "nome": "Número de casos de violência contra pessoas LGBTQIAPN+ por cor/raça, idade",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.6",
+          "nome": "Número de homicídios contra pessoas LGBTQIAPN+ por cor/raça, idade",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.2.7",
+          "nome": "Número de denúncias de crimes de ódio associados ao racismo e à injúria racial e misoginia, incluindo crimes cometidos em ambientes virtuais, em relação às populações indígenas e afrodescendentes, segmentado",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.3.1",
+          "nome": "Distribuição de pessoas encarceradas por raça/cor, idade, etnia, sexo e tipo de crime",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.3.2",
+          "nome": "Distribuição de pessoas encarceradas sem sentença por raça/cor, idade, etnia e sexo",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.3.3",
+          "nome": "Número de processos relacionados a racismo/injúria racial, intolerância religiosa, homofobia e transfobia",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.3.5",
+          "nome": "Proporção da população que se sente segura quando caminha sozinha na área onde vive por cor/raça e sexo",
+          "status": "em-analise",
+          "eixos": [
+            "seguranca"
+          ]
+        },
+        {
+          "codigo": "18.4.1",
+          "nome": "Proporção de assentos ocupados por sexo, cor/raça no Executivo (governador, prefeito) e Legislativo (senador, dep. federal, dep. estadual/distrital, vereador)",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.4.2",
+          "nome": "Proporção de pessoas que se candidatam a eleições (candidatos executivo/legislativo), por cor/raça, etnia e sexo, identidade gênero e orientação sexual, tipo de financiamento",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.4.3",
+          "nome": "Proporção de servidoras e servidores públicos por cor/raça, etnia, sexo, identidade gênero, orientação sexual e nível da Classificação Brasileira de Ocupações (CBO) nos três Poderes",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.4.4",
+          "nome": "Proporção de cargos de médio e alto escalão no setor público ocupados, por cor/raça, etnia, sexo, identidade gênero e orientação sexual",
+          "status": "em-analise",
+          "eixos": [
+            "economico",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.4.5",
+          "nome": "Participação em cargos gerenciais no setor privado por cor/raça, etnia, sexo, identidade gênero, orientação sexual, por remuneração",
+          "status": "em-analise",
+          "eixos": [
+            "economico",
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.4.6",
+          "nome": "Proporção de assentos em órgãos colegiados e instâncias de participação ocupados conselhos de administração de empresas x público/privado, por cor/raça, etnia, sexo, identidade gênero e orientação sexual",
+          "status": "em-analise",
+          "eixos": [
+            "governanca"
+          ]
+        },
+        {
+          "codigo": "18.6.1",
+          "nome": "Proporção de moradores em domicílios com abastecimento de água inadequado por sexo, cor ou raça, pessoa indígena ou quilombola",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.6.2",
+          "nome": "Proporção de pessoas moradoras em domicílios com esgotamento sanitário inadequado, por sexo, cor ou raça, pessoa indígena ou quilombola",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.6.3",
+          "nome": "Proporção de população urbana vivendo em favelas e comunidades urbanas por sexo, cor ou raça, pessoa indígena ou quilombola",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.6.5",
+          "nome": "Déficit habitacional por sexo, cor/raça segundo responsável pelo domicílio",
+          "status": "em-analise",
+          "eixos": [
+            "assistencia-social",
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.7.10",
+          "nome": "Ausência de atendimento em serviço de saúde por motivo que levou a procurar atendimento por raça/cor e gênero",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.8.1",
+          "nome": "Taxa de frequência escolar líquida de 15 a 17 anos por cor ou raça (incluindo indígenas e quilombolas) por sexo e UF",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.2",
+          "nome": "Taxa de distorção idade-série por raça/cor (incluindo indígenas e quilombolas) na educação básica (desagregada em EFI, II e EM), por sexo e UF",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.3",
+          "nome": "Taxa de abandono por raça/cor, (incluindo indígenas e quilombolas) na educação básica (desagregada em EFI, II e EM), por sexo e UF",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.5",
+          "nome": "Nota do SAEB dos estudantes por raça/cor, (incluindo indígenas e quilombolas), por sexo e UF",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.6",
+          "nome": "Taxa de atendimento escolar no ensino superior por raça/cor (incluindo indígenas e quilombolas, (desagregada por curso e tipo de IES), por sexo e UF",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.7",
+          "nome": "Percentual de estudantes pretos e pardos matriculados por sexo e UF em Programas de Pós-Graduação Stricto Sensu",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.8",
+          "nome": "Quantitativo e percentual de pretos, pardos e indígenas por sexo com título e Mestre e Doutor",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.9",
+          "nome": "Proporção de escolas com acesso a: (a) eletricidade; (b) internet para fins pedagógicos; (c) computadores para fins pedagógicos; (d) infraestrutura e materiais adaptados para alunos com deficiência; (e) água potável; (f) instalações sanitárias separadas por sexo; e (g) instalações básicas para lavagem das mãos (de acordo com as definições dos indicadores WASH)",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.8.10",
+          "nome": "Percentual de pesquisadores pretos, pardos e indígenas por sexo e UF com bolsa de produtividade em pesquisa",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.10.1",
+          "nome": "Percentual de imigrantes matriculados na educação básica e no ensino superior, por nacionalidade, sexo e UF, segundo nível de escolaridade, em relação ao total de alunos",
+          "status": "em-analise",
+          "eixos": [
+            "educacao"
+          ]
+        },
+        {
+          "codigo": "18.10.3",
+          "nome": "Razão de imigrantes por nacionalidade, raça/cor e sexo com CID 10 identificada, por capítulo, e o quantitativo de auxílios-doença concedidos",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.10.4",
+          "nome": "Razão entre o número de imigrantes e volume de ocorrências médicas, por CID, por nacionalidade, raça/cor e sexo por estado e município",
+          "status": "em-analise",
+          "eixos": [
+            "saude"
+          ]
+        },
+        {
+          "codigo": "18.10.5",
+          "nome": "(a) População imigrante estrangeira em idade de trabalhar (14 anos ou mais) por cor ou raça, por sexo, nível de escolaridade e grupos de idade; (b) Imigrantes estrangeiros ocupados por cor ou raça, por sexo, nível de escolaridade e grupos de idade.  (c)  Nível de ocupação das pessoas imigrantes estrangeiras por cor ou raça, por sexo, nível de escolaridade e grupos de idade",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        },
+        {
+          "codigo": "18.10.6",
+          "nome": "Rendimento médio bruto mensal habitual de todos os trabalhos de pessoas imigrantes estrangeiras ocupadas, com rendimento de trabalho,  com  14 anos de idade  por cor ou raça, por sexo, nível de instrução e grandes grupos ocupacionais",
+          "status": "em-analise",
+          "eixos": [
+            "economico"
+          ]
+        }
+      ]
+    }
+  ]
+}

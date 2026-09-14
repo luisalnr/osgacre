@@ -5,8 +5,21 @@ import { ExternalLink, Search } from "lucide-react";
 import { ORDEM_TIPOS, ROTULO_TIPO } from "@/lib/parser-leis";
 import { chave } from "@/lib/referencias";
 import type { Lei, TipoLei } from "@/lib/types";
-import { Card, Entrada, Etiqueta, Secao, TituloSecao } from "@/components/ui/primitivos";
+import {
+  Botao,
+  Card,
+  Entrada,
+  Etiqueta,
+  Secao,
+  TituloSecao,
+} from "@/components/ui/primitivos";
 import { cn } from "@/lib/utils";
+
+/** Quantos entram a cada "Mostrar mais" — mesmo passo da tabela do painel. */
+const PAGINA = 24;
+
+/** Quantos aparecem de saída. Seis fileiras de dois no desktop. */
+const INICIAL = 12;
 
 /**
  * Instrumentos legais que embasam o OSG, agrupados nas mesmas seis categorias da
@@ -17,8 +30,47 @@ import { cn } from "@/lib/utils";
  * ficam fora de propósito — aqui a seção mostra a citação, não o montante.
  */
 export function BaseLegal({ leis }: { leis: Lei[] }) {
+  return (
+    <Secao id="base-legal">
+      <TituloSecao
+        sobretitulo="Instrumentos legais"
+        titulo="A base legal do OSG no Acre"
+        descricao="Leis, decretos e instrumentos de planejamento que citam mulheres, gênero ou o próprio Orçamento Sensível ao Gênero. Clique no número para abrir o texto integral no repositório de legislação do Estado."
+      />
+      <ListaInstrumentos leis={leis} />
+    </Secao>
+  );
+}
+
+/**
+ * O miolo da lista, sem moldura de seção.
+ *
+ * Separado de `BaseLegal` porque o painel mostra a mesma lista sob a sua própria
+ * casca — lá o título e a descrição vêm do banner da seção, e repetir o
+ * `TituloSecao` duplicaria o cabeçalho. A lógica vive só aqui.
+ */
+export function ListaInstrumentos({ leis }: { leis: Lei[] }) {
   const [tipo, setTipo] = useState<TipoLei>("lei_ordinaria");
   const [busca, setBusca] = useState("");
+  const [visiveis, setVisiveis] = useState(INICIAL);
+
+  /**
+   * Trocar de aba ou buscar recomeça a janela. Sem isto, quem abriu as 79 leis
+   * ordinárias cairia na aba seguinte já toda expandida, e a busca mostraria o
+   * recorte novo com o tamanho antigo.
+   *
+   * O reset mora aqui, e não num efeito: quem muda o recorte são estes dois
+   * eventos, e `setState` dentro de efeito dispara render em cascata.
+   */
+  const trocarTipo = (t: TipoLei) => {
+    setTipo(t);
+    setVisiveis(INICIAL);
+  };
+
+  const trocarBusca = (termo: string) => {
+    setBusca(termo);
+    setVisiveis(INICIAL);
+  };
 
   const porTipo = useMemo(() => {
     const mapa = new Map<TipoLei, Lei[]>();
@@ -28,7 +80,7 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
     return mapa;
   }, [leis]);
 
-  const visiveis = useMemo(() => {
+  const filtrados = useMemo(() => {
     const lista = porTipo.get(tipo) ?? [];
     const termo = chave(busca);
     if (!termo) return lista;
@@ -38,15 +90,11 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
   }, [porTipo, tipo, busca]);
 
   const total = porTipo.get(tipo)?.length ?? 0;
+  const naTela = filtrados.slice(0, visiveis);
+  const restantes = filtrados.length - naTela.length;
 
   return (
-    <Secao id="base-legal">
-      <TituloSecao
-        sobretitulo="Instrumentos legais"
-        titulo="A base legal do OSG no Acre"
-        descricao="Leis, decretos e instrumentos de planejamento que citam mulheres, gênero ou o próprio Orçamento Sensível ao Gênero. Clique no número para abrir o texto integral no repositório de legislação do Estado."
-      />
-
+    <>
       <div className="mb-5 flex flex-wrap items-center gap-2">
         {ORDEM_TIPOS.map((t) => {
           const n = porTipo.get(t)?.length ?? 0;
@@ -55,7 +103,7 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
             <button
               key={t}
               type="button"
-              onClick={() => setTipo(t)}
+              onClick={() => trocarTipo(t)}
               aria-pressed={ativo}
               className={cn(
                 "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
@@ -85,7 +133,7 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
         />
         <Entrada
           value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          onChange={(e) => trocarBusca(e.target.value)}
           placeholder="Buscar por número, ementa ou órgão"
           aria-label="Buscar instrumento legal"
           className="pl-9"
@@ -94,16 +142,23 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
 
       <p className="mb-4 text-sm text-texto-3">
         {busca
-          ? `${visiveis.length} de ${total} registros`
+          ? `${filtrados.length} de ${total} registros`
           : `${total} registros em ${ROTULO_TIPO[tipo].toLowerCase()}`}
       </p>
 
-      <ul className="space-y-3">
-        {visiveis.map((l) => (
+      {/* Terceira coluna na faixa larga: mantém a ementa em linha curta em vez
+          de esticar dois cartões de ~860px. */}
+      <ul className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        {naTela.map((l) => (
           <li key={l.id}>
-            <Card className="p-4 transition-shadow hover:shadow-card-alta">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
+            {/*
+              h-full: o <li> já estica para a altura da fileira por ser item de
+              grid, mas o cartão dentro dele encolhia para o próprio conteúdo —
+              e ementas de tamanhos diferentes deixavam a dupla desalinhada.
+            */}
+            <Card className="h-full p-4 transition-shadow hover:shadow-card-alta">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
                   {l.url ? (
                     <a
                       href={l.url}
@@ -118,46 +173,78 @@ export function BaseLegal({ leis }: { leis: Lei[] }) {
                   ) : (
                     <span className="text-sm font-semibold text-texto">{l.numero}</span>
                   )}
-                  <p className="mt-1.5 text-pretty text-sm leading-relaxed text-texto-2">
-                    {l.ementa}
-                  </p>
-                  {l.orgao ? (
-                    <p className="mt-2 text-xs text-texto-3">
-                      <span className="font-medium">Órgão: </span>
-                      {l.orgao}
-                    </p>
-                  ) : null}
-                  {l.metas ? (
-                    <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-texto-3">
-                      <span className="font-medium">Metas e prioridades: </span>
-                      {l.metas}
-                    </p>
-                  ) : null}
                 </div>
 
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                {/* Só a data. A contagem de citações da planilha ("0/1
+                    citações") saiu daqui: ela conta ocorrências dentro do
+                    documento, não diz nada sobre o OSG, e num cartão que já é
+                    número, ementa e órgão só competia por atenção. O campo
+                    continua na base, para quem precisar dele um dia. */}
+                <div className="shrink-0">
                   {l.doe ? (
                     <Etiqueta>DOE {l.doe}</Etiqueta>
                   ) : l.data ? (
                     <Etiqueta>{l.data}</Etiqueta>
                   ) : null}
-                  {l.citacoes ? (
-                    <span className="text-xs text-texto-3">
-                      {l.citacoes} citações
-                    </span>
-                  ) : null}
                 </div>
               </div>
+              <p className="mt-1.5 text-pretty text-sm leading-relaxed text-texto-2">
+                {l.ementa}
+              </p>
+              {l.orgao ? (
+                <p className="mt-2 text-xs text-texto-3">
+                  <span className="font-medium">Órgão: </span>
+                  {l.orgao}
+                </p>
+              ) : null}
+              {/*
+                Metas é o campo mais alto do conjunto — texto com quebras
+                preservadas, em 10 dos 179 registros. Fechado por padrão para
+                não ditar a altura dos outros 169. <details> nativo já vem
+                acessível por teclado e dispensa estado.
+              */}
+              {l.metas ? (
+                <details className="group mt-2">
+                  <summary className="cursor-pointer list-none text-xs font-medium text-texto-3 hover:text-texto-2">
+                    Metas e prioridades
+                    <span className="ml-1 inline-block transition-transform group-open:rotate-90">
+                      ›
+                    </span>
+                  </summary>
+                  <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-texto-3">
+                    {l.metas}
+                  </p>
+                </details>
+              ) : null}
             </Card>
           </li>
         ))}
       </ul>
 
-      {!visiveis.length ? (
+      {restantes > 0 ? (
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+          <Botao
+            variante="secundario"
+            onClick={() => setVisiveis((v) => v + PAGINA)}
+          >
+            Mostrar mais {Math.min(PAGINA, restantes)} de {restantes} restantes
+          </Botao>
+          {/* Atalho para quem prefere o Ctrl+F do navegador à busca da seção. */}
+          <button
+            type="button"
+            onClick={() => setVisiveis(filtrados.length)}
+            className="text-sm text-texto-3 underline underline-offset-4 hover:text-lilas"
+          >
+            Mostrar todos os {filtrados.length}
+          </button>
+        </div>
+      ) : null}
+
+      {!filtrados.length ? (
         <p className="rounded-card border border-dashed border-borda-forte p-8 text-center text-sm text-texto-3">
           Nenhum instrumento encontrado para esta busca.
         </p>
       ) : null}
-    </Secao>
+    </>
   );
 }

@@ -35,13 +35,65 @@ export const SOBRE = {
     "Cada dotação do orçamento estadual é triada por palavras-chave, discutida com o órgão executor e enquadrada em uma das três categorias abaixo. A categoria define quanto do valor da dotação é apropriado ao OSG.",
 };
 
-export const METODOLOGIA_NOTA =
-  "As colunas do painel são a parcela apropriada ao OSG, não o orçamento da dotação inteira. Ao abrir a linha na tabela detalhada aparecem a dotação inicial e a atualizada da ação orçamentária, vindas do Quadro de Detalhamento da Despesa (QDD), e quanto delas foi apropriado ao OSG. O percentual é calculado sobre a dotação inicial da LOA, porque a apropriação do OSG é um número de planejamento; nas emendas parlamentares, que entram na lei com dotação zerada, a base é a dotação atualizada. Quando o planejado supera a dotação inicial, o percentual dá lugar a uma anotação que informa se a dotação foi suplementada durante o exercício ou se o registro precisa de conferência.";
+/**
+ * A nota metodológica em suas quatro ideias, cada uma com o título da pergunta
+ * que responde. Vive só no rodapé do painel, abaixo da tabela que ela explica:
+ * na página inicial estaria explicando colunas que o leitor ainda não viu.
+ */
+export const METODOLOGIA_PARTES = [
+  {
+    titulo: "O que as colunas mostram",
+    texto:
+      "As colunas do painel são a parcela apropriada ao OSG, não o orçamento da dotação inteira.",
+  },
+  {
+    titulo: "Onde ver a dotação",
+    texto:
+      "Ao abrir a linha na tabela detalhada aparecem a dotação inicial e a atualizada da ação orçamentária, vindas do Quadro de Detalhamento da Despesa (QDD), e quanto delas foi apropriado ao OSG.",
+  },
+  {
+    titulo: "Como o percentual é calculado",
+    texto:
+      "O percentual é calculado sobre a dotação inicial da LOA, porque a apropriação do OSG é um número de planejamento; nas emendas parlamentares, que entram na lei com dotação zerada, a base é a dotação atualizada.",
+  },
+  {
+    titulo: "Quando aparece uma anotação",
+    texto:
+      "Quando o planejado supera a dotação inicial, o percentual dá lugar a uma anotação que informa se a dotação foi suplementada durante o exercício ou se o registro precisa de conferência.",
+  },
+] as const;
+
+/**
+ * Ressalva dos exercícios cuja execução ainda não foi encerrada.
+ *
+ * Texto único para o painel, o XLSX e o PDF — se cada um escrevesse o seu, três
+ * versões da mesma ressalva acabariam dizendo três coisas ligeiramente
+ * diferentes sobre o mesmo número.
+ *
+ * Fica fora de `METODOLOGIA_PARTES` de propósito: aquele bloco descreve a
+ * metodologia do OSG e vale para todo exercício, enquanto esta é uma condição
+ * temporária de um exercício específico, que sai quando o COSG fechar o ano.
+ */
+export const NOTA_EM_APURACAO = {
+  titulo: "Execução em apuração",
+  texto:
+    "O valor planejado deste exercício vem da lei orçamentária e está fechado. " +
+    "O liquidado, não: é um acumulado parcial do ano em curso e ainda vai subir " +
+    "até o encerramento. Por isso ele não é exibido aqui — compará-lo com a " +
+    "execução de exercícios já encerrados faria o ano corrente parecer pior do " +
+    "que vai terminar.",
+} as const;
 
 export type Relatorio = {
   titulo: string;
   descricao: string;
   arquivo: string;
+  /**
+   * Capa rasterizada da página 1 do PDF, em A4 (1:1.414), gerada por
+   * `scripts/capas-relatorios.py`. Opcional de propósito: uma publicação pode
+   * entrar aqui antes da capa existir, e o cartão cai no formato sem imagem.
+   */
+  capa?: string;
   ano: string;
   tipo: "Relatório" | "Guia";
 };
@@ -52,6 +104,7 @@ export const RELATORIOS: Relatorio[] = [
     descricao:
       "Execução orçamentária de 2024 e previsão para 2025, com análises por categoria, eixo temático, função orçamentária e unidade executora, além do recorte do eixo Segurança.",
     arquivo: "/relatorios/SEPLAN-OSG-2025.pdf",
+    capa: "/relatorios/capas/osg-2025.png",
     ano: "2025",
     tipo: "Relatório",
   },
@@ -60,6 +113,7 @@ export const RELATORIOS: Relatorio[] = [
     descricao:
       "Primeiro relatório do Orçamento Sensível ao Gênero do Estado do Acre: consolidação da apuração dos gastos com políticas para as mulheres na Lei Orçamentária de 2024.",
     arquivo: "/relatorios/SEPLAN-OSG-2024.pdf",
+    capa: "/relatorios/capas/osg-2024.png",
     ano: "2024",
     tipo: "Relatório",
   },
@@ -68,10 +122,34 @@ export const RELATORIOS: Relatorio[] = [
     descricao:
       "Fundamentação legal, conceitos, etapas de implantação, matriz de classificação de gastos e indicadores de monitoramento — material de referência para os órgãos executores.",
     arquivo: "/relatorios/SEPLAN-GUIA-OSG.pdf",
+    capa: "/relatorios/capas/guia-osg.png",
     ano: "2026",
     tipo: "Guia",
   },
 ];
+
+/**
+ * Composição do DEPPO, o departamento que mantém o painel. Nomes e cargos são
+ * informação de crédito — conferir com a chefia antes de alterar.
+ */
+export const EQUIPE_DEPPO = {
+  orgao: "Departamento de Estudos e Planejamento Orçamentário — DEPPO/SEPLAN",
+  /** Cabeçalho da coluna do rodapé; o nome por extenso não cabe em uma linha
+   *  e já aparece no parágrafo do COSG, ao lado. */
+  sigla: "Equipe DEPPO/SEPLAN",
+  coordenacao: [
+    { nome: "Denyscley Oliveira Bandeira", cargo: "Gestor de Políticas Públicas" },
+  ],
+  tecnica: [
+    { nome: "Ícaro Lebre Gundim", cargo: "Economista" },
+    { nome: "Luísa Nascimento Ribeiro", cargo: "Economista" },
+    {
+      nome: "Roseneide Mendonça de Sena Caldera",
+      cargo: "Especialista Executiva – Administração",
+    },
+    { nome: "Vinicius Carneiro de Farias", cargo: "Economista" },
+  ],
+} as const;
 
 export const LINKS_INSTITUCIONAIS = [
   { rotulo: "SEPLAN Acre", href: "https://seplan.ac.gov.br/" },
