@@ -1,6 +1,8 @@
 import { inArray, sql } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/session";
+import { TAG_REGISTROS } from "@/lib/dados";
 import { getDb } from "@/lib/db/neon";
 import { registrosToInserts, rowToRegistro } from "@/lib/db/mappers";
 import { registros } from "@/lib/db/schema";
@@ -111,6 +113,11 @@ export async function POST(req: Request) {
         });
     }
 
+    // Depois da gravação, nunca antes: o site tem de mostrar o número novo na
+    // visita seguinte. Ver o bloco de cache em `src/lib/dados.ts`.
+    // "max" é o perfil que o Next 16 pede no segundo argumento para reproduzir
+    // a purga imediata; `updateTag` só existe em Server Action, não aqui.
+    revalidateTag(TAG_REGISTROS, "max");
     return NextResponse.json({ ok: true, gravados: inserts.length, anos, modo });
   } catch (e) {
     return NextResponse.json(
@@ -139,6 +146,7 @@ export async function DELETE(req: Request) {
   try {
     const db = getDb();
     await db.delete(registros).where(inArray(registros.ano, [ano]));
+    revalidateTag(TAG_REGISTROS, "max");
     return NextResponse.json({ ok: true, ano });
   } catch (e) {
     return NextResponse.json(

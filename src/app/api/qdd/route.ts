@@ -1,6 +1,8 @@
 import { inArray, sql } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/session";
+import { TAG_QDD } from "@/lib/dados";
 import { getDb } from "@/lib/db/neon";
 import { qddToInserts, rowToQdd } from "@/lib/db/mappers";
 import { qdd } from "@/lib/db/schema";
@@ -122,6 +124,9 @@ export async function POST(req: Request) {
         });
     }
 
+    // Depois da gravação, nunca antes. Muda a versão do QDD e faz toda
+    // instância reler — ver o bloco de cache em `src/lib/dados.ts`.
+    revalidateTag(TAG_QDD, "max");
     return NextResponse.json({ ok: true, gravados: inserts.length, anos });
   } catch (e) {
     return NextResponse.json(

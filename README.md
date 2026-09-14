@@ -383,6 +383,12 @@ scripts/
   entram sem quebrar as linhas já gravadas. `ponderador` e `planejado_entrega` são os dois
   únicos nullable da tabela, e por significado: em ambos o vazio quer dizer alguma coisa
   ("não pondera", "não discriminado") que um zero apagaria.
+- **Cache dos dados**: `src/lib/dados.ts` guarda os seeds em memória pelo tempo do processo e
+  envolve as consultas ao Neon em `unstable_cache` com tag. Duas consequências práticas. Em
+  produção, quem mantém a promessa de "importou, apareceu" é o `revalidateTag` das rotas de
+  escrita — mexeu numa rota de escrita nova, lembre da tag. Em desenvolvimento, rodar
+  `npm run data:build` com o servidor de pé **não** troca os números na tela: os seeds já estão
+  em memória, e é preciso reiniciar o `npm run dev`.
 - **Liquidado de 2026**: está no banco e é conferível na prévia da importação, mas não
   aparece em nenhuma superfície de leitura. Ver *Exercícios em apuração*, acima.
 

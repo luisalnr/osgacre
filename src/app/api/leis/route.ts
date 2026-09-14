@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/auth/session";
+import { TAG_LEIS } from "@/lib/dados";
 import { getDb } from "@/lib/db/neon";
 import { leisToInserts, rowToLei } from "@/lib/db/mappers";
 import { leis } from "@/lib/db/schema";
@@ -73,6 +75,7 @@ export async function POST(req: Request) {
           },
         });
     }
+    revalidateTag(TAG_LEIS, "max");
     return NextResponse.json({ ok: true, gravados: inserts.length });
   } catch (e) {
     return NextResponse.json(
