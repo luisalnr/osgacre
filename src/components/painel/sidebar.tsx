@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Database, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SECOES, type SecaoId } from "./secoes";
@@ -106,10 +107,44 @@ export function Sidebar({
             {recolhida ? null : "Voltar ao site"}
           </Link>
 
+          {/*
+            Ilustração no vão que o `mt-auto` abria entre a navegação e o
+            rodapé. Decorativa: `alt=""` para o leitor de tela pular, porque ela
+            não diz nada que o texto ao redor já não diga.
+
+            Some quando a barra está recolhida (72 px não comportam a arte) e
+            quando a janela é baixa — abaixo de 760 px de altura ela empurraria
+            o rodapé para fora da coluna. É por isso que o `mt-auto` mudou para
+            cá: assim a ilustração e o rodapé descem juntos, colados, em vez de
+            sobrar um vão entre os dois.
+
+            `sizes` fixo na largura útil da coluna (260 px menos o padding): sem
+            ele o Next escolheria uma variante de até 3840 px para uma imagem
+            que nunca passa de 236.
+          */}
+          {recolhida ? null : (
+            <div className="mt-auto hidden px-3 pt-6 [@media(min-height:760px)]:block">
+              <Image
+                src="/ilustracoes/mulheres-07.png"
+                alt=""
+                width={1254}
+                height={1254}
+                sizes="236px"
+                className="h-auto w-full object-contain"
+              />
+            </div>
+          )}
+
           <footer
             className={cn(
               "mt-auto border-t border-borda pt-4",
-              recolhida ? "flex justify-center" : "px-3"
+              recolhida
+                ? "flex justify-center"
+                : // Expandida e com janela alta, quem empurra é a ilustração; o
+                  // rodapé troca o `mt-auto` por um respiro fixo para encostar
+                  // nela. Em janela baixa a ilustração não existe, e o `mt-auto`
+                  // do rodapé volta a valer sozinho.
+                  "px-3 [@media(min-height:760px)]:mt-4"
             )}
             title={recolhida ? "Fonte dos dados: COSG e DEPPO/SEPLAN" : undefined}
           >
