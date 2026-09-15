@@ -1,6 +1,8 @@
+/// <reference types="react/canary" />
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Inter } from "next/font/google";
+import { ViewTransition } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -36,7 +38,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    // `data-scroll-behavior`: o `scroll-behavior: smooth` do globals.css serve às
+    // âncoras do site, mas numa troca de rota o Next só o desliga com este
+    // atributo. Sem ele, quem clicava em "Acessar painel" no rodapé via a página
+    // rolar animada até o topo no meio da transição.
+    <html lang="pt-BR" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {process.env.NODE_ENV === "development" && (
           <Script
@@ -48,7 +54,10 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
-          {children}
+          {/* Com `experimental.viewTransition`, cada navegação entre páginas
+              esmaece a tela velha sobre a nova (duração em globals.css). O
+              Toaster fica fora para os avisos não entrarem na captura. */}
+          <ViewTransition>{children}</ViewTransition>
           <Toaster position="top-right" richColors closeButton />
         </ThemeProvider>
       </body>

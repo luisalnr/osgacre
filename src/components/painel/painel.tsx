@@ -295,7 +295,10 @@ export function Painel({
             <BarraFiltros filtros={filtros} opcoes={opcoes} aoMudar={aoMudarFiltros} />
           ) : null}
 
-      <main className={cn(LARGURA_CONTEUDO, "space-y-6 py-6")}>
+      {/* `surgir` só na montagem: a faixa verde e a barra lateral já estavam no
+          esqueleto de `loading.tsx`, então só o conteúdo que chega com os dados
+          entra animado. A troca de aba não remonta o <main> e não repete o efeito. */}
+      <main className={cn(LARGURA_CONTEUDO, "surgir space-y-6 py-6")}>
         {/*
           Cabeçalho da seção, não mais um cartão entre os cartões: o fundo em
           lilás tênue e o ícone da própria seção o separam do conteúdo abaixo e

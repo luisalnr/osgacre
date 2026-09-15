@@ -270,3 +270,44 @@ body {
 .surgir {
   animation: surgir 0.35s ease-out both;
 }
+
+/*
+  Entrada da tela de espera do painel. Só opacidade, e curta: ela aparece no
+  instante do clique, e um deslocamento aqui leria como a página tremendo.
+*/
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.aparecer {
+  animation: aparecer 0.2s ease-out both;
+}
+
+/*
+  Esmaecimento cruzado das navegações (ver `experimental.viewTransition` no
+  next.config). O padrão do navegador é 0,25 s linear; um pouco mais longo e com
+  saída suave, a troca do hero verde-escuro para o painel claro deixa de piscar.
+*/
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surgir,
+  .aparecer {
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
