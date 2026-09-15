@@ -56,17 +56,19 @@ export function Sobre() {
           </ul>
         </div>
 
-        {/* Sem moldura e sem fundo: o PNG já vem recortado — alfa zero em
-            ~40% da área — e o cartão em `bg-superficie-2` desenhava atrás dele
-            um retângulo cinza que a ilustração não tem. `object-contain` com
-            altura automática porque `cover` recortava as figuras das pontas
-            quando a coluna fica mais estreita que a arte. */}
-        <div className="relative">
+        {/* Sem moldura e sem fundo: o PNG já vem recortado — alfa zero nos
+            cantos e entre as folhas — e o cartão em `bg-superficie-2` desenhava
+            atrás dele um retângulo cinza que a ilustração não tem. `object-contain`
+            com altura automática porque `cover` recortava as figuras das pontas
+            quando a coluna fica mais estreita que a arte. A arte é quadrada:
+            o teto de largura a deixa com a altura do texto ao lado, e o
+            `self-center` a alinha pelo meio da coluna em vez do topo. */}
+        <div className="relative mx-auto w-full max-w-[26rem] lg:self-center">
           <Image
-            src="/ilustracoes/mulheres-faixa.png"
-            alt="Ilustração de cinco mulheres de perfis diversos lado a lado"
-            width={1536}
-            height={1024}
+            src="/ilustracoes/mulheres_caminhando_sem_fundo.png"
+            alt="Ilustração de cinco mulheres de perfis diversos caminhando juntas, uma delas com o punho erguido"
+            width={1254}
+            height={1254}
             className="h-auto w-full object-contain"
           />
         </div>

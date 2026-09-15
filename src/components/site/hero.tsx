@@ -93,10 +93,10 @@ export function Hero({ exercicio, aprop, liq, execucao, dotacoes }: Props) {
 
         <div className="relative mx-auto hidden w-full max-w-md lg:block">
           <Image
-            src="/ilustracoes/mulheres-recorte.png"
-            alt="Ilustração de mulheres de diferentes idades, origens e ocupações"
-            width={1240}
-            height={1240}
+            src="/ilustracoes/mulheres_sem_fundo.png"
+            alt="Ilustração de cinco mulheres de perfis diversos com as mãos unidas ao centro, entre folhagens"
+            width={1254}
+            height={1254}
             priority
             className="h-auto w-full drop-shadow-2xl"
           />

@@ -125,7 +125,7 @@ export function Sidebar({
           {recolhida ? null : (
             <div className="mt-auto hidden px-3 pt-6 [@media(min-height:760px)]:block">
               <Image
-                src="/ilustracoes/mulheres-07.png"
+                src="/ilustracoes/mulheres_na_mesa_sem_fundo_dados.png"
                 alt=""
                 width={1254}
                 height={1254}
